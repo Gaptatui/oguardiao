@@ -8,11 +8,11 @@ import { GoogleGenAI } from "@google/genai";
 import { 
   ShieldAlert, ShieldCheck, ShieldQuestion, Send, AlertTriangle, 
   Info, History, Trash2, Mic, FileAudio, LayoutDashboard, 
-  User, LogIn, LogOut, Bell, Clock, MapPin, Activity,
+  User, LogIn, LogOut, Bell, Clock, MapPin, Activity, Car,
   Heart, Zap, Users, Navigation, QrCode, Pill, Briefcase,
   Search, Plus, CheckCircle2, XCircle, AlertCircle, ChevronRight,
   ExternalLink, Clapperboard, ShoppingBag, Theater, Beer, Utensils,
-  ShoppingBasket, Store, Menu, Star
+  ShoppingBasket, Store, Menu, Star, Moon, Sun
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
@@ -109,23 +109,42 @@ interface Device {
   readingInterval: number; // in seconds
 }
 
+interface UserProfile {
+  uid: string;
+  email: string;
+  plan: 'free' | 'pro';
+  subscriptionStatus?: 'active' | 'inactive' | 'past_due';
+  subscriptionPeriod?: 'monthly' | 'yearly';
+  nextBillingDate?: number;
+  paymentMethod?: string;
+  isAdmin: boolean;
+  isVip?: boolean;
+  timestamp: number;
+}
+
 type Language = 'pt' | 'en' | 'es' | 'fr' | 'de' | 'it' | 'nl' | 'zh' | 'he';
 
 const translations = {
   pt: {
-    appName: "O Guardião",
-    dashboard: "Painel",
+    appName: "O GUARDIAO",
+    dashboard: "Início",
     emergency: "Emergência",
     scam: "Golpes",
     settings: "Configurações",
+    adminPanel: "Administração",
     personalData: "Dados Pessoais",
     language: "Idioma",
     name: "Nome",
     email: "E-mail",
     phone: "Telefone",
+    theme: "Tema",
+    light: "Claro",
+    dark: "Escuro",
     save: "Salvar",
     selectLanguage: "Selecione o Idioma",
-    welcome: "Bem-vindo ao Guardião",
+    welcome: "Bem-vindo ao O GUARDIAO",
+    quotaExceeded: "Cota da API excedida. Tente novamente em alguns instantes.",
+    refresh: "Atualizar",
     sentinelActive: "SENTINELA ATIVO",
     protectionLevel: "Nível de Proteção",
     high: "ALTO",
@@ -154,7 +173,7 @@ const translations = {
     settingsDescription: "Perfil e Preferências",
     autoListening: "Escuta Automática",
     responseMode: "Modo de Resposta",
-    autoDescription: "* O Guardião bloqueará links e notificará contatos automaticamente ao detectar golpes.",
+    autoDescription: "* O GUARDIAO bloqueará links e notificará contatos automaticamente ao detectar golpes.",
     manualDescription: "* Você será notificado para decidir a ação a cada ameaça detectada.",
     simulateNotification: "Simular Notificação Suspeita",
     activityLog: "LOG DE ATIVIDADES",
@@ -172,7 +191,7 @@ const translations = {
     directActivation: "Acionamento Direto",
     medicalEmergency: "Emergência Médica",
     realTimeListening: "Escuta em Tempo Real",
-    listeningDescription: "O Guardião ouvirá o áudio local em emergências.",
+    listeningDescription: "O GUARDIAO ouvirá o áudio local em emergências.",
     localAudioActive: "Áudio Local Ativo",
     safeContacts: "Contatos de Segurança",
     addNewContact: "Adicionar Novo Contato",
@@ -182,7 +201,7 @@ const translations = {
     sendForAnalysis: "ENVIAR PARA ANÁLISE",
     controlPanel: "Painel de Controle",
     monitoringAlerts: "Monitoramento de alertas em tempo real...",
-    footer: "SENTINELA • GUARDIÃO © 2026",
+    footer: "SENTINELA • O GUARDIAO © 2026",
     verdict: "Veredito",
     reason: "Motivo",
     action: "Ação",
@@ -219,6 +238,12 @@ const translations = {
     nearbyUnits: "Unidades de Saúde Próximas em Santos",
     nearbyPharmacies: "Farmácias Próximas",
     findPharmacies: "Buscar Farmácias",
+    findMyCar: "Onde deixei meu carro?",
+    markCarLocation: "Marcar Localização do Carro",
+    carLocationSaved: "Localização do carro salva!",
+    returnToCar: "Rota de Retorno ao Carro",
+    carNotMarked: "Nenhuma localização de carro marcada.",
+    carLocationDescription: "Salve a localização atual para encontrar seu veículo depois.",
     leisureCulture: "LAZER E CULTURA",
     findLeisure: "Encontrar Lazer",
     cinema: "Cinema",
@@ -239,6 +264,56 @@ const translations = {
     healthy: "Saudável",
     pizza: "Pizza",
     seafood: "Frutos do Mar",
+    freePlan: "Plano Grátis",
+    proPlan: "Plano PRO",
+    upgradeToPro: "Upgrade para PRO",
+    proFeatureTitle: "Funcionalidade PRO",
+    proFeatureDescription: "Esta funcionalidade está disponível apenas para usuários PRO. Faça o upgrade agora para ter proteção total!",
+    upgradeNow: "Fazer Upgrade Agora",
+    currentPlan: "Plano Atual",
+    benefitsPro: "Benefícios do Plano PRO:",
+    benefit1: "• Análise de Áudio IA Ilimitada",
+    benefit2: "• Planejamento de Rotas Seguras Avançado",
+    benefit3: "• Monitoramento de Dispositivos Ilimitado",
+    benefit4: "• Consultoria Estratégica Exclusiva",
+    benefit5: "• Suporte Prioritário 24/7",
+    checkoutTitle: "Finalizar Assinatura PRO",
+    checkoutSubtitle: "Você está a um passo da proteção total.",
+    cardNumber: "Número do Cartão",
+    expiryDate: "Validade",
+    cvv: "CVV",
+    confirmPurchase: "Confirmar Assinatura",
+    processing: "Processando...",
+    purchaseSuccess: "Assinatura PRO ativada com sucesso!",
+    proBadge: "PRO",
+    pricePro: "R$ 29,90/mês",
+    priceProYearly: "R$ 299,00/ano",
+    saveYearly: "Economize 15%",
+    subscriptionDetails: "Detalhes da Assinatura",
+    status: "Status",
+    active: "Ativa",
+    inactive: "Inativa",
+    periodicity: "Periodicidade",
+    monthly: "Mensal",
+    yearly: "Anual",
+    nextBilling: "Próximo Faturamento",
+    paymentMethodLabel: "Forma de Pagamento",
+    cancelSubscription: "Cancelar Assinatura",
+    cancelConfirmTitle: "Cancelar Plano PRO?",
+    cancelConfirmMessage: "Você perderá acesso a todas as funcionalidades exclusivas ao final do período atual. Tem certeza?",
+    subscriptionCancelled: "Sua assinatura foi cancelada.",
+    userManagement: "Gestão de Usuários",
+    userEmail: "E-mail do Usuário",
+    userPlan: "Plano",
+    userRole: "Cargo",
+    makeAdmin: "Tornar Admin",
+    removeAdmin: "Remover Admin",
+    makeVip: "Marcar como VIP",
+    removeVip: "Remover VIP",
+    setPro: "Definir como PRO",
+    setFree: "Definir como Grátis",
+    userUpdated: "Usuário atualizado com sucesso!",
+    vipBadge: "VIP",
     pharmacyPrompt: "Quais são as 3 farmácias mais próximas de mim? Liste-as no formato 'Nome (Distância)'.",
     unitsPrompt: "Quais são as 5 unidades de saúde (UPAs, postos de saúde, hospitais, policlínicas) mais próximas de mim? Liste-as no formato 'Nome (Distância)'.",
     leisurePrompt: "Quais são os 3 {category} mais próximos de mim? Elenque-os no formato 'Nome (Distância) [Avaliação]'. A avaliação deve ser um número de 0 a 5.",
@@ -258,7 +333,7 @@ const translations = {
     protectionActive: "PROTEÇÃO ATIVA",
     protectionDisabled: "PROTEÇÃO DESATIVADA",
     globalMonitoring: "Monitoramento Global",
-    globalMonitoringDescription: "Ative para permitir que o Guardião analise notificações.",
+    globalMonitoringDescription: "Ative para permitir que O GUARDIAO analise notificações.",
     individualListeningConfig: "Configuração Individual de Escuta",
     silentAlertActive: "ALERTA SILENCIOSO ATIVADO",
     trustZone: "Você está em uma zona de confiança",
@@ -310,7 +385,7 @@ const translations = {
       "Vaga de emprego home office: R$ 800/dia. Chame no link: http://vagas-urgentes.net"
     ],
     routePrompt: "Como um assistente de segurança local em Santos, SP, trace uma rota segura saindo de \"{origin}\" para o destino: \"{dest}\". Considere evitar áreas de risco conhecidas como a Zona Portuária Norte e o Centro Histórico à noite. Sugira uma rota principal e explique por que ela é mais segura. Responda de forma concisa em português.",
-    routeSystemInstruction: "Você é o Especialista em Rotas Seguras do Guardião. Sua missão é proteger o cidadão sugerindo caminhos iluminados e movimentados.",
+    routeSystemInstruction: "Você é o Especialista em Rotas Seguras do O GUARDIAO. Sua missão é proteger o cidadão sugerindo caminhos iluminados e movimentados.",
     routeFallback: "Erro ao calcular rota. Siga pelas avenidas principais e bem iluminadas.",
     routeSuccess: "Rota calculada com sucesso via vias principais.",
     emergencyAlert: "Emergência {service}",
@@ -322,19 +397,25 @@ const translations = {
     father: "Pai",
   },
   en: {
-    appName: "The Guardian",
-    dashboard: "Dashboard",
+    appName: "O GUARDIAO",
+    dashboard: "Home",
     emergency: "Emergency",
     scam: "Scams",
     settings: "Settings",
+    adminPanel: "Administration",
     personalData: "Personal Data",
     language: "Language",
     name: "Name",
     email: "Email",
     phone: "Phone",
+    theme: "Theme",
+    light: "Light",
+    dark: "Dark",
     save: "Save",
     selectLanguage: "Select Language",
-    welcome: "Welcome to Guardian",
+    welcome: "Welcome to O GUARDIAO",
+    quotaExceeded: "API quota exceeded. Please try again in a few moments.",
+    refresh: "Refresh",
     sentinelActive: "SENTINEL ACTIVE",
     protectionLevel: "Protection Level",
     high: "HIGH",
@@ -363,7 +444,7 @@ const translations = {
     settingsDescription: "Profile and Preferences",
     autoListening: "Auto Listening",
     responseMode: "Response Mode",
-    autoDescription: "* Guardian will block links and notify contacts automatically when scams are detected.",
+    autoDescription: "* O GUARDIAO will block links and notify contacts automatically when scams are detected.",
     manualDescription: "* You will be notified to decide the action for each detected threat.",
     simulateNotification: "Simulate Suspicious Notification",
     activityLog: "ACTIVITY LOG",
@@ -381,7 +462,7 @@ const translations = {
     directActivation: "Direct Activation",
     medicalEmergency: "Medical Emergency",
     realTimeListening: "Real-time Listening",
-    listeningDescription: "Guardian will listen to local audio in emergencies.",
+    listeningDescription: "O GUARDIAO will listen to local audio in emergencies.",
     localAudioActive: "Local Audio Active",
     safeContacts: "Safe Contacts",
     addNewContact: "Add New Contact",
@@ -391,7 +472,7 @@ const translations = {
     sendForAnalysis: "SEND FOR ANALYSIS",
     controlPanel: "Control Panel",
     monitoringAlerts: "Real-time alert monitoring...",
-    footer: "SENTINEL • GUARDIAN © 2026",
+    footer: "SENTINELA • O GUARDIAO © 2026",
     verdict: "Verdict",
     reason: "Reason",
     action: "Action",
@@ -428,6 +509,12 @@ const translations = {
     nearbyUnits: "Nearby Health Units in Santos",
     nearbyPharmacies: "Nearby Pharmacies",
     findPharmacies: "Find Pharmacies",
+    findMyCar: "Find my car",
+    markCarLocation: "Mark Car Location",
+    carLocationSaved: "Car location saved!",
+    returnToCar: "Return Route to Car",
+    carNotMarked: "No car location marked.",
+    carLocationDescription: "Save current location to find your vehicle later.",
     leisureCulture: "LEISURE & CULTURE",
     findLeisure: "Find Leisure",
     cinema: "Cinema",
@@ -448,6 +535,56 @@ const translations = {
     healthy: "Healthy",
     pizza: "Pizza",
     seafood: "Seafood",
+    freePlan: "Free Plan",
+    proPlan: "PRO Plan",
+    upgradeToPro: "Upgrade to PRO",
+    proFeatureTitle: "PRO Feature",
+    proFeatureDescription: "This feature is only available for PRO users. Upgrade now for full protection!",
+    upgradeNow: "Upgrade Now",
+    currentPlan: "Current Plan",
+    benefitsPro: "PRO Plan Benefits:",
+    benefit1: "• Unlimited AI Audio Analysis",
+    benefit2: "• Advanced Safe Route Planning",
+    benefit3: "• Unlimited Device Monitoring",
+    benefit4: "• Exclusive Strategic Consultancy",
+    benefit5: "• 24/7 Priority Support",
+    checkoutTitle: "Complete PRO Subscription",
+    checkoutSubtitle: "You are one step away from full protection.",
+    cardNumber: "Card Number",
+    expiryDate: "Expiry Date",
+    cvv: "CVV",
+    confirmPurchase: "Confirm Subscription",
+    processing: "Processing...",
+    purchaseSuccess: "PRO Subscription activated successfully!",
+    proBadge: "PRO",
+    pricePro: "$ 9.90/month",
+    priceProYearly: "$ 99.00/year",
+    saveYearly: "Save 15%",
+    subscriptionDetails: "Subscription Details",
+    status: "Status",
+    active: "Active",
+    inactive: "Inactive",
+    periodicity: "Periodicity",
+    monthly: "Monthly",
+    yearly: "Yearly",
+    nextBilling: "Next Billing",
+    paymentMethodLabel: "Payment Method",
+    cancelSubscription: "Cancel Subscription",
+    cancelConfirmTitle: "Cancel PRO Plan?",
+    cancelConfirmMessage: "You will lose access to all exclusive features at the end of the current period. Are you sure?",
+    subscriptionCancelled: "Your subscription has been cancelled.",
+    userManagement: "User Management",
+    userEmail: "User Email",
+    userPlan: "Plan",
+    userRole: "Role",
+    makeAdmin: "Make Admin",
+    removeAdmin: "Remove Admin",
+    makeVip: "Mark as VIP",
+    removeVip: "Remove VIP",
+    setPro: "Set as PRO",
+    setFree: "Set as Free",
+    userUpdated: "User updated successfully!",
+    vipBadge: "VIP",
     pharmacyPrompt: "What are the 3 nearest pharmacies to me? List them in the format 'Name (Distance)'.",
     unitsPrompt: "What are the 5 nearest health units (UPAs, health centers, hospitals, polyclinics) to me? List them in the format 'Name (Distance)'.",
     leisurePrompt: "What are the 3 nearest {category} to me? List them in the format 'Name (Distance) [Rating]'. The rating should be a number from 0 to 5.",
@@ -467,7 +604,7 @@ const translations = {
     protectionActive: "PROTECTION ACTIVE",
     protectionDisabled: "PROTECTION DISABLED",
     globalMonitoring: "Global Monitoring",
-    globalMonitoringDescription: "Activate to allow Guardian to analyze notifications.",
+    globalMonitoringDescription: "Activate to allow O GUARDIAO to analyze notifications.",
     individualListeningConfig: "Individual Listening Config",
     silentAlertActive: "SILENT ALERT ACTIVATED",
     trustZone: "You are in a trust zone",
@@ -519,7 +656,7 @@ const translations = {
       "Home office job opening: R$ 800/day. Call at the link: http://vagas-urgentes.net"
     ],
     routePrompt: "As a local security assistant in Santos, SP, trace a safe route from \"{origin}\" to the destination: \"{dest}\". Consider avoiding known risk areas such as the North Port Zone and the Historic Center at night. Suggest a main route and explain why it is safer. Answer concisely in English.",
-    routeSystemInstruction: "You are the Guardian's Safe Route Specialist. Your mission is to protect the citizen by suggesting lit and busy paths.",
+    routeSystemInstruction: "You are the O GUARDIAO's Safe Route Specialist. Your mission is to protect the citizen by suggesting lit and busy paths.",
     routeFallback: "Error calculating route. Follow the main and well-lit avenues.",
     routeSuccess: "Route successfully calculated via main roads.",
     emergencyAlert: "Emergency {service}",
@@ -531,7 +668,7 @@ const translations = {
     father: "Father",
   },
   es: {
-    appName: "El Guardián",
+    appName: "O GUARDIAO",
     dashboard: "Panel",
     emergency: "Emergencia",
     scam: "Estafas",
@@ -541,9 +678,12 @@ const translations = {
     name: "Nombre",
     email: "Correo electrónico",
     phone: "Teléfono",
+    theme: "Tema",
+    light: "Claro",
+    dark: "Oscuro",
     save: "Guardar",
     selectLanguage: "Seleccione el Idioma",
-    welcome: "Bienvenido al Guardián",
+    welcome: "Bienvenido al O GUARDIAO",
     sentinelActive: "SENTINELA ACTIVO",
     protectionLevel: "Nivel de Protección",
     high: "ALTO",
@@ -572,7 +712,7 @@ const translations = {
     settingsDescription: "Perfil e Preferencias",
     autoListening: "Escucha Automática",
     responseMode: "Modo de Respuesta",
-    autoDescription: "* El Guardián bloqueará enlaces e notificará contactos automáticamente al detectar estafas.",
+    autoDescription: "* O GUARDIAO bloqueará enlaces e notificará contactos automáticamente al detectar estafas.",
     manualDescription: "* Se le notificará para decidir la acción ante cada amenaza detectada.",
     simulateNotification: "Simular Notificación Sospechosa",
     activityLog: "REGISTRO DE ACTIVIDADES",
@@ -590,7 +730,7 @@ const translations = {
     directActivation: "Activación Directa",
     medicalEmergency: "Emergencia Médica",
     realTimeListening: "Escucha en Tiempo Real",
-    listeningDescription: "El Guardián escuchará o áudio local en emergencias.",
+    listeningDescription: "O GUARDIAO escuchará o áudio local en emergencias.",
     localAudioActive: "Audio Local Ativo",
     safeContacts: "Contactos de Seguridad",
     addNewContact: "Agregar Nuevo Contacto",
@@ -600,7 +740,7 @@ const translations = {
     sendForAnalysis: "ENVIAR PARA ANÁLISIS",
     controlPanel: "Panel de Control",
     monitoringAlerts: "Monitoreo de alertas en tiempo real...",
-    footer: "SENTINELA • GUARDIÁN © 2026",
+    footer: "SENTINELA • O GUARDIAO © 2026",
     verdict: "Veredicto",
     reason: "Motivo",
     action: "Acción",
@@ -676,7 +816,7 @@ const translations = {
     protectionActive: "PROTECCIÓN ACTIVA",
     protectionDisabled: "PROTECCIÓN DESACTIVADA",
     globalMonitoring: "Monitoreo Global",
-    globalMonitoringDescription: "Active para permitir que el Guardián analice notificaciones.",
+    globalMonitoringDescription: "Active para permitir que O GUARDIAO analice notificaciones.",
     individualListeningConfig: "Configuración Individual de Escucha",
     silentAlertActive: "ALERTA SILENCIOSA ACTIVADA",
     trustZone: "Estás en una zona de confianza",
@@ -740,7 +880,7 @@ const translations = {
     father: "Padre",
   },
   fr: {
-    appName: "Le Gardien",
+    appName: "O GUARDIAO",
     dashboard: "Tableau de bord",
     emergency: "Urgence",
     scam: "Arnaques",
@@ -750,9 +890,12 @@ const translations = {
     name: "Nom",
     email: "E-mail",
     phone: "Téléphone",
+    theme: "Thème",
+    light: "Clair",
+    dark: "Sombre",
     save: "Enregistrer",
     selectLanguage: "Sélectionner la langue",
-    welcome: "Bienvenue sur Guardian",
+    welcome: "Bienvenue sur O GUARDIAO",
     sentinelActive: "SENTINELLE ACTIVE",
     protectionLevel: "Niveau de protection",
     high: "ÉLEVÉ",
@@ -781,7 +924,7 @@ const translations = {
     settingsDescription: "Profil et préférences",
     autoListening: "Écoute automatique",
     responseMode: "Mode de réponse",
-    autoDescription: "* Guardian bloquera les liens et notifiera les contacts automatiquement lors de la détection d'arnaques.",
+    autoDescription: "* O GUARDIAO bloquera les liens et notifiera les contacts automatiquement lors de la détection d'arnaques.",
     manualDescription: "* Vous serez notifié pour décider de l'action pour chaque menace détectée.",
     simulateNotification: "Simuler une notification suspecte",
     activityLog: "LOG D'ACTIVITÉ",
@@ -799,7 +942,7 @@ const translations = {
     directActivation: "Activation directe",
     medicalEmergency: "Urgence médicale",
     realTimeListening: "Écoute en temps réel",
-    listeningDescription: "Guardian écoutera l'audio local en cas d'urgence.",
+    listeningDescription: "O GUARDIAO écoutera l'audio local en cas d'urgence.",
     localAudioActive: "Audio local actif",
     safeContacts: "Contacts de sécurité",
     addNewContact: "Ajouter un contact",
@@ -809,7 +952,7 @@ const translations = {
     sendForAnalysis: "ENVOYER POUR ANALYSE",
     controlPanel: "Panneau de contrôle",
     monitoringAlerts: "Surveillance des alertes en temps réel...",
-    footer: "SENTINELLE • GUARDIAN © 2026",
+    footer: "SENTINELLE • O GUARDIAO © 2026",
     verdict: "Verdict",
     reason: "Raison",
     action: "Action",
@@ -883,7 +1026,7 @@ const translations = {
     protectionActive: "PROTECTION ACTIVE",
     protectionDisabled: "PROTECTION DÉSACTIVÉE",
     globalMonitoring: "Surveillance globale",
-    globalMonitoringDescription: "Activer pour permettre à Guardian d'analyser les notifications.",
+    globalMonitoringDescription: "Activer pour permettre à O GUARDIAO d'analyser les notifications.",
     individualListeningConfig: "Config d'écoute individuelle",
     silentAlertActive: "ALERTE SILENCIEUSE ACTIVÉE",
     trustZone: "Vous êtes dans une zone de confiance",
@@ -935,7 +1078,7 @@ const translations = {
       "Offre d'emploi en télétravail : 800 R$/jour. Appelez au lien : http://vagas-urgentes.net"
     ],
     routePrompt: "En tant qu'assistant de sécurité local à Santos, SP, tracez un itinéraire sûr de \"{origin}\" vers la destination : \"{dest}\". Évitez les zones à risque connues comme la zone portuaire nord et le centre historique la nuit. Suggérez un itinéraire principal et expliquez pourquoi il est plus sûr. Répondez de manière concise en français.",
-    routeSystemInstruction: "Vous êtes le spécialiste des itinéraires sûrs de Guardian. Votre mission est de protéger le citoyen en suggérant des chemins éclairés et fréquentés.",
+    routeSystemInstruction: "Vous êtes le spécialiste des itinéraires sûrs de O GUARDIAO. Votre mission est de protéger le citoyen en suggérant des chemins éclairés et fréquentés.",
     routeFallback: "Erreur lors du calcul de l'itinéraire. Suivez les avenues principales et bien éclairées.",
     routeSuccess: "Itinéraire calculé avec succès via les routes principales.",
     emergencyAlert: "Urgence {service}",
@@ -947,7 +1090,7 @@ const translations = {
     father: "Père",
   },
   de: {
-    appName: "Der Wächter",
+    appName: "O GUARDIAO",
     dashboard: "Dashboard",
     emergency: "Notfall",
     scam: "Betrug",
@@ -957,9 +1100,12 @@ const translations = {
     name: "Name",
     email: "E-Mail",
     phone: "Telefon",
+    theme: "Thema",
+    light: "Hell",
+    dark: "Dunkel",
     save: "Speichern",
     selectLanguage: "Sprache auswählen",
-    welcome: "Willkommen bei Guardian",
+    welcome: "Willkommen bei O GUARDIAO",
     sentinelActive: "SENTINEL AKTIV",
     protectionLevel: "Schutzniveau",
     high: "HOCH",
@@ -988,7 +1134,7 @@ const translations = {
     settingsDescription: "Profil und Präferenzen",
     autoListening: "Automatisches Zuhören",
     responseMode: "Antwortmodus",
-    autoDescription: "* Guardian blockiert Links und benachrichtigt Kontakte automatisch bei Betrugserkennung.",
+    autoDescription: "* O GUARDIAO blockiert Links und benachrichtigt Kontakte automatisch bei Betrugserkennung.",
     manualDescription: "* Sie werden benachrichtigt, um über die Aktion bei jeder Bedrohung zu entscheiden.",
     simulateNotification: "Verdächtige Benachrichtigung simulieren",
     activityLog: "AKTIVITÄTSPROTOKOLL",
@@ -1006,7 +1152,7 @@ const translations = {
     directActivation: "Direkte Aktivierung",
     medicalEmergency: "Medizinischer Notfall",
     realTimeListening: "Echtzeit-Zuhören",
-    listeningDescription: "Guardian hört im Notfall lokales Audio ab.",
+    listeningDescription: "O GUARDIAO hört im Notfall lokales Audio ab.",
     localAudioActive: "Lokales Audio aktiv",
     safeContacts: "Sicherheitskontakte",
     addNewContact: "Neuen Kontakt hinzufügen",
@@ -1016,7 +1162,7 @@ const translations = {
     sendForAnalysis: "ZUR ANALYSE SENDEN",
     controlPanel: "Kontrollzentrum",
     monitoringAlerts: "Echtzeit-Warnungsüberwachung...",
-    footer: "SENTINEL • GUARDIAN © 2026",
+    footer: "SENTINELA • O GUARDIAO © 2026",
     verdict: "Urteil",
     reason: "Grund",
     action: "Aktion",
@@ -1090,7 +1236,7 @@ const translations = {
     protectionActive: "SCHUTZ AKTIV",
     protectionDisabled: "SCHUTZ DEAKTIVIERT",
     globalMonitoring: "Globale Überwachung",
-    globalMonitoringDescription: "Aktivieren, damit Guardian Benachrichtigungen analysieren kann.",
+    globalMonitoringDescription: "Aktivieren, damit O GUARDIAO Benachrichtigungen analysieren kann.",
     individualListeningConfig: "Individuelle Zuhör-Konfig",
     silentAlertActive: "STILLER ALARM AKTIVIERT",
     trustZone: "Sie befinden sich in einer Vertrauenszone",
@@ -1142,7 +1288,7 @@ const translations = {
       "Home-Office-Stellenangebot: 800 R$/Tag. Rufen Sie unter dem Link an: http://vagas-urgentes.net"
     ],
     routePrompt: "Erstellen Sie als lokaler Sicherheitsassistent in Santos, SP, eine sichere Route von \"{origin}\" zum Ziel: \"{dest}\". Vermeiden Sie bekannte Risikogebiete wie die nördliche Hafenzone und das historische Zentrum bei Nacht. Schlagen Sie eine Hauptroute vor und erklären Sie, warum sie sicherer ist. Antworten Sie prägnant auf Deutsch.",
-    routeSystemInstruction: "Sie sind der Spezialist für sichere Routen von Guardian. Ihre Mission ist es, den Bürger zu schützen, indem Sie beleuchtete und belebte Wege vorschlagen.",
+    routeSystemInstruction: "Sie sind der Spezialist für sichere Routen von O GUARDIAO. Ihre Mission ist es, den Bürger zu schützen, indem Sie beleuchtete und belebte Wege vorschlagen.",
     routeFallback: "Fehler bei der Routenberechnung. Folgen Sie den Haupt- und gut beleuchteten Alleen.",
     routeSuccess: "Route erfolgreich über Hauptstraßen berechnet.",
     emergencyAlert: "Notfall {service}",
@@ -1154,7 +1300,7 @@ const translations = {
     father: "Vater",
   },
   it: {
-    appName: "Il Guardiano",
+    appName: "O GUARDIAO",
     dashboard: "Dashboard",
     emergency: "Emergenza",
     scam: "Truffe",
@@ -1164,9 +1310,12 @@ const translations = {
     name: "Nome",
     email: "E-mail",
     phone: "Telefono",
+    theme: "Tema",
+    light: "Chiaro",
+    dark: "Scuro",
     save: "Salva",
     selectLanguage: "Seleziona lingua",
-    welcome: "Benvenuto in Guardian",
+    welcome: "Benvenuto in O GUARDIAO",
     sentinelActive: "SENTINELLA ATTIVA",
     protectionLevel: "Livello di protezione",
     high: "ALTO",
@@ -1195,7 +1344,7 @@ const translations = {
     settingsDescription: "Profilo e preferenze",
     autoListening: "Ascolto automatico",
     responseMode: "Modalità di risposta",
-    autoDescription: "* Guardian bloccherà i link e notificherà i contatti automaticamente quando vengono rilevate truffe.",
+    autoDescription: "* O GUARDIAO bloccherà i link e notificherà i contatti automaticamente quando vengono rilevate truffe.",
     manualDescription: "* Verrai notificato per decidere l'azione per ogni minaccia rilevata.",
     simulateNotification: "Simula notifica sospetta",
     activityLog: "LOG ATTIVITÀ",
@@ -1213,7 +1362,7 @@ const translations = {
     directActivation: "Attivazione diretta",
     medicalEmergency: "Emergenza medica",
     realTimeListening: "Ascolto in tempo reale",
-    listeningDescription: "Guardian ascolterà l'audio locale in caso di emergenza.",
+    listeningDescription: "O GUARDIAO ascolterà l'audio locale in caso di emergenza.",
     localAudioActive: "Audio locale attivo",
     safeContacts: "Contatti di sicurezza",
     addNewContact: "Aggiungi nuovo contatto",
@@ -1223,7 +1372,7 @@ const translations = {
     sendForAnalysis: "INVIA PER ANALISI",
     controlPanel: "Pannello di controllo",
     monitoringAlerts: "Monitoraggio avvisi in tempo reale...",
-    footer: "SENTINELLA • GUARDIAN © 2026",
+    footer: "SENTINELA • O GUARDIAO © 2026",
     verdict: "Verdetto",
     reason: "Motivo",
     action: "Azione",
@@ -1297,7 +1446,7 @@ const translations = {
     protectionActive: "PROTEZIONE ATTIVA",
     protectionDisabled: "PROTEZIONE DISATTIVATA",
     globalMonitoring: "Monitoraggio globale",
-    globalMonitoringDescription: "Attiva per consentire a Guardian di analizzare le notifiche.",
+    globalMonitoringDescription: "Attiva per consentire a O GUARDIAO di analizzare le notifiche.",
     individualListeningConfig: "Config ascolto individuale",
     silentAlertActive: "ALLERTA SILENZIOSA ATTIVATA",
     trustZone: "Sei in una zona di fiducia",
@@ -1349,7 +1498,7 @@ const translations = {
       "Offerta di lavoro da casa: R$ 800/giorno. Chiama al link: http://vagas-urgentes.net"
     ],
     routePrompt: "In qualità di assistente alla sicurezza locale a Santos, SP, traccia un percorso sicuro da \"{origin}\" verso la destinazione: \"{dest}\". Evita le zone a rischio note come la zona portuale settentrionale e il centro storico di notte. Suggerisci un percorso principale e spiega perché è più sicuro. Rispondi in modo conciso in italiano.",
-    routeSystemInstruction: "Sei lo specialista dei percorsi sicuri di Guardian. La tua missione è proteggere il cittadino suggerendo percorsi illuminati e frequentati.",
+    routeSystemInstruction: "Sei lo specialista dei percorsi sicuri di O GUARDIAO. La tua missione è proteggere il cittadino suggerendo percorsi illuminati e frequentati.",
     routeFallback: "Errore nel calcolo del percorso. Segui i viali principali e ben illuminati.",
     routeSuccess: "Percorso calcolato con successo tramite le strade principali.",
     emergencyAlert: "Emergenza {service}",
@@ -1361,7 +1510,7 @@ const translations = {
     father: "Padre",
   },
   nl: {
-    appName: "De Bewaker",
+    appName: "O GUARDIAO",
     dashboard: "Dashboard",
     emergency: "Noodgeval",
     scam: "Fraude",
@@ -1371,9 +1520,12 @@ const translations = {
     name: "Naam",
     email: "E-mail",
     phone: "Telefoon",
+    theme: "Thema",
+    light: "Licht",
+    dark: "Donker",
     save: "Opslaan",
     selectLanguage: "Selecteer taal",
-    welcome: "Welkom bij Guardian",
+    welcome: "Welkom bij O GUARDIAO",
     sentinelActive: "SENTINEL ACTIEF",
     protectionLevel: "Beschermingsniveau",
     high: "HOOG",
@@ -1402,7 +1554,7 @@ const translations = {
     settingsDescription: "Profiel en voorkeuren",
     autoListening: "Automatisch luisteren",
     responseMode: "Reactiemodus",
-    autoDescription: "* Guardian blokkeert links en stelt contacten automatisch op de hoogte wanneer fraude wordt gedetecteerd.",
+    autoDescription: "* O GUARDIAO blokkeert links en stelt contacten automatisch op de hoogte wanneer fraude wordt gedetecteerd.",
     manualDescription: "* U krijgt een melding om de actie te bepalen voor elke gedetecteerde dreiging.",
     simulateNotification: "Simuleer verdachte melding",
     activityLog: "ACTIVITEITENLOG",
@@ -1420,7 +1572,7 @@ const translations = {
     directActivation: "Directe activering",
     medicalEmergency: "Medisch noodgeval",
     realTimeListening: "Real-time luisteren",
-    listeningDescription: "Guardian luistert naar lokale audio in noodgevallen.",
+    listeningDescription: "O GUARDIAO luistert naar lokale audio in noodgevallen.",
     localAudioActive: "Lokale audio actief",
     safeContacts: "Veiligheidscontacten",
     addNewContact: "Nieuw contact toevoegen",
@@ -1430,7 +1582,7 @@ const translations = {
     sendForAnalysis: "STUUR VOOR ANALYSE",
     controlPanel: "Controlepaneel",
     monitoringAlerts: "Real-time waarschuwingsmonitoring...",
-    footer: "SENTINEL • GUARDIAN © 2026",
+    footer: "SENTINELA • O GUARDIAO © 2026",
     verdict: "Oordeel",
     reason: "Reden",
     action: "Actie",
@@ -1504,7 +1656,7 @@ const translations = {
     protectionActive: "BESCHERMING ACTIEF",
     protectionDisabled: "BESCHERMING UITGESCHAKELD",
     globalMonitoring: "Globale monitoring",
-    globalMonitoringDescription: "Activeer om Guardian toe te staan meldingen te analyseren.",
+    globalMonitoringDescription: "Activeer om O GUARDIAO toe te staan meldingen te analyseren.",
     individualListeningConfig: "Individuele luisterconfiguratie",
     silentAlertActive: "STIL ALARM GEACTIVEERD",
     trustZone: "U bevindt zich in een vertrouwenszone",
@@ -1556,7 +1708,7 @@ const translations = {
       "Vacature voor thuiswerk: R$ 800/dag. Bel via de link: http://vagas-urgentes.net"
     ],
     routePrompt: "Als lokale veiligheidsassistent in Santos, SP, stippel je een veilige route uit van \"{origin}\" naar de bestemming: \"{dest}\". Vermijd bekende risicogebieden zoals de noordelijke havenzone en het historische centrum 's nachts. Stel een hoofdroute voor en leg uit waarom deze veiliger is. Antwoord beknopt in het Nederlands.",
-    routeSystemInstruction: "U bent de specialist voor veilige routes van Guardian. Uw missie is om de burger te beschermen door verlichte en drukke paden voor te stellen.",
+    routeSystemInstruction: "U bent de specialist voor veilige routes van O GUARDIAO. Uw missie is om de burger te beschermen door verlichte en drukke paden voor te stellen.",
     routeFallback: "Fout bij het berekenen van de route. Volg de hoofd- en goed verlichte lanen.",
     routeSuccess: "Route succesvol berekend via hoofdwegen.",
     emergencyAlert: "Noodgeval {service}",
@@ -1568,7 +1720,7 @@ const translations = {
     father: "Vader",
   },
   zh: {
-    appName: "守护者",
+    appName: "O GUARDIAO",
     dashboard: "仪表板",
     emergency: "紧急情况",
     scam: "诈骗",
@@ -1578,9 +1730,12 @@ const translations = {
     name: "姓名",
     email: "电子邮件",
     phone: "电话",
+    theme: "主题",
+    light: "浅色",
+    dark: "深色",
     save: "保存",
     selectLanguage: "选择语言",
-    welcome: "欢迎来到 Guardian",
+    welcome: "欢迎来到 O GUARDIAO",
     sentinelActive: "哨兵激活",
     protectionLevel: "保护级别",
     high: "高",
@@ -1609,7 +1764,7 @@ const translations = {
     settingsDescription: "个人资料和偏好",
     autoListening: "自动监听",
     responseMode: "响应模式",
-    autoDescription: "* 当检测到诈骗时，Guardian 将自动阻止链接并通知联系人。",
+    autoDescription: "* 当检测到诈骗时，O GUARDIAO 将自动阻止链接并通知联系人。",
     manualDescription: "* 您将收到通知，以决定对每个检测到的威胁采取的行动。",
     simulateNotification: "模拟可疑通知",
     activityLog: "活动日志",
@@ -1627,7 +1782,7 @@ const translations = {
     directActivation: "直接激活",
     medicalEmergency: "医疗紧急情况",
     realTimeListening: "实时监听",
-    listeningDescription: "Guardian 将在紧急情况下监听本地音频。",
+    listeningDescription: "O GUARDIAO 将在紧急情况下监听本地音频。",
     localAudioActive: "本地音频激活",
     safeContacts: "安全联系人",
     addNewContact: "添加新联系人",
@@ -1637,7 +1792,7 @@ const translations = {
     sendForAnalysis: "发送进行分析",
     controlPanel: "控制面板",
     monitoringAlerts: "实时警报监控...",
-    footer: "SENTINEL • GUARDIAN © 2026",
+    footer: "SENTINELA • O GUARDIAO © 2026",
     verdict: "结论",
     reason: "原因",
     action: "行动",
@@ -1711,7 +1866,7 @@ const translations = {
     protectionActive: "保护激活",
     protectionDisabled: "保护禁用",
     globalMonitoring: "全球监控",
-    globalMonitoringDescription: "激活以允许 Guardian 分析通知。",
+    globalMonitoringDescription: "激活以允许 O GUARDIAO 分析通知。",
     individualListeningConfig: "个人监听配置",
     silentAlertActive: "静默警报激活",
     trustZone: "您处于信任区域",
@@ -1763,7 +1918,7 @@ const translations = {
       "居家办公职位：R$ 800/天。通过链接致电：http://vagas-urgentes.net"
     ],
     routePrompt: "作为桑托斯 (SP) 的本地安全助手，请规划一条从 \"{origin}\" 前往目的地 \"{dest}\" 的安全路线。避开已知的风险区域，如北部港口区和夜间的历史中心。建议一条主要路线并解释为什么它更安全。请用中文简明扼要地回答。",
-    routeSystemInstruction: "你是 Guardian 的安全路线专家。你的任务是通过建议光线充足且人流较多的路径来保护公民。",
+    routeSystemInstruction: "你是 O GUARDIAO 的安全路线专家。你的任务是通过建议光线充足且人流较多的路径来保护公民。",
     routeFallback: "计算路线时出错。请沿着主要且光线充足的大道行驶。",
     routeSuccess: "已成功通过主要道路计算出路线。",
     emergencyAlert: "紧急情况 {service}",
@@ -1775,7 +1930,7 @@ const translations = {
     father: "父亲",
   },
   he: {
-    appName: "השומר",
+    appName: "O GUARDIAO",
     dashboard: "לוח בקרה",
     emergency: "חירום",
     scam: "הונאות",
@@ -1785,9 +1940,12 @@ const translations = {
     name: "שם",
     email: "אימייל",
     phone: "טלפון",
+    theme: "ערכת נושא",
+    light: "בהיר",
+    dark: "כהה",
     save: "שמור",
     selectLanguage: "בחר שפה",
-    welcome: "ברוכים הבאים ל-Guardian",
+    welcome: "ברוכים הבאים ל-O GUARDIAO",
     sentinelActive: "סנטינל פעיל",
     protectionLevel: "רמת הגנה",
     high: "גבוהה",
@@ -1816,7 +1974,7 @@ const translations = {
     settingsDescription: "פרופיל והעדפות",
     autoListening: "האזנה אוטומטית",
     responseMode: "מצב תגובה",
-    autoDescription: "* Guardian יחסום קישורים ויודיע לאנשי קשר באופן אוטומטי כאשר תזוהה הונאה.",
+    autoDescription: "* O GUARDIAO יחסום קישורים ויודיע לאנשי קשר באופן אוטומטי כאשר תזוהה הונאה.",
     manualDescription: "* תקבל הודעה כדי להחליט על הפעולה עבור כל איום שיזוהה.",
     simulateNotification: "סמלץ הודעה חשודה",
     activityLog: "יומן פעילות",
@@ -1834,7 +1992,7 @@ const translations = {
     directActivation: "הפעלה ישירה",
     medicalEmergency: "מצב חירום רפואי",
     realTimeListening: "האזנה בזמן אמת",
-    listeningDescription: "Guardian יאזין לשמע מקומי במקרה חירום.",
+    listeningDescription: "O GUARDIAO יאזין לשמע מקומי במקרה חירום.",
     localAudioActive: "שמע מקומי פעיל",
     safeContacts: "אנשי קשר לשעת חירום",
     addNewContact: "הוסף איש קשר חדש",
@@ -1844,7 +2002,7 @@ const translations = {
     sendForAnalysis: "שלח לניתוח",
     controlPanel: "לוח בקרה",
     monitoringAlerts: "ניטור התראות בזמן אמת...",
-    footer: "SENTINEL • GUARDIAN © 2026",
+    footer: "SENTINELA • O GUARDIAO © 2026",
     verdict: "פסק דין",
     reason: "סיבה",
     action: "פעולה",
@@ -1918,7 +2076,7 @@ const translations = {
     protectionActive: "הגנה פעילה",
     protectionDisabled: "הגנה מושבתת",
     globalMonitoring: "ניטור גלובלי",
-    globalMonitoringDescription: "הפעל כדי לאפשר ל-Guardian לנתח התראות.",
+    globalMonitoringDescription: "הפעל כדי לאפשר ל-O GUARDIAO לנתח התראות.",
     individualListeningConfig: "הגדרות האזנה אישיות",
     silentAlertActive: "התראת שקטה הופעלה",
     trustZone: "אתה באזור בטוח",
@@ -1970,7 +2128,7 @@ const translations = {
       "הצעת עבודה מהבית: R$ 800 ליום. התקשר דרך הקישור: http://vagas-urgentes.net"
     ],
     routePrompt: "כעוזר בטיחות מקומי בסנטוס, SP, התווה מסלול בטוח מ-\"{origin}\" ליעד: \"{dest}\". הימנע מאזורי סיכון ידועים כמו אזור הנמל הצפוני והמרכז ההיסטורי בלילה. הצע מסלול עיקרי והסבר מדוע הוא בטוח יותר. ענה בקצרה בעברית.",
-    routeSystemInstruction: "אתה המומחה למסלולים בטוחים של Guardian. המשימה שלך היא להגן על האזרח על ידי הצעה של נתיבים מוארים ועמוסים.",
+    routeSystemInstruction: "אתה המומחה למסלולים בטוחים של O GUARDIAO. המשימה שלך היא להגן על האזרח על ידי הצעה של נתיבים מוארים ועמוסים.",
     routeFallback: "שגיאה בחישוב המסלול. עקוב אחר השדרות הראשיות והמוארות היטב.",
     routeSuccess: "המסלול חושב בהצלחה דרך הדרכים הראשיות.",
     emergencyAlert: "חירום {service}",
@@ -2002,6 +2160,22 @@ interface FirestoreErrorInfo {
 export default function App() {
   const [view, setView] = useState<'DASHBOARD' | 'SCAM' | 'EMERGENCY' | 'PAINEL' | 'SETTINGS'>('DASHBOARD');
   const [language, setLanguage] = useState<Language>('pt');
+  const [theme, setTheme] = useState<'light' | 'dark'>(() => {
+    const saved = localStorage.getItem('guardian-theme');
+    return (saved as 'light' | 'dark') || 'light';
+  });
+
+  useEffect(() => {
+    console.log('Theme changed to:', theme);
+    localStorage.setItem('guardian-theme', theme);
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark');
+      document.documentElement.setAttribute('data-theme', 'dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+      document.documentElement.setAttribute('data-theme', 'light');
+    }
+  }, [theme]);
   const [personalData, setPersonalData] = useState({
     name: '',
     email: '',
@@ -2010,7 +2184,13 @@ export default function App() {
   const t = translations[language];
 
   const [user, setUser] = useState<FirebaseUser | null>(null);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const [allUsers, setAllUsers] = useState<UserProfile[]>([]);
   const [isAuthReady, setIsAuthReady] = useState(false);
+  const isAdmin = user?.email === 'gersonproenca@gmail.com' || userProfile?.isAdmin === true;
+  const [showCheckout, setShowCheckout] = useState(false);
+  const [selectedPeriod, setSelectedPeriod] = useState<'monthly' | 'yearly'>('monthly');
+  const [isProcessingPurchase, setIsProcessingPurchase] = useState(false);
   
   // Sentinel State
   const [panicActive, setPanicActive] = useState(false);
@@ -2039,6 +2219,35 @@ export default function App() {
   const showToast = (message: string, type: 'info' | 'success' | 'error' = 'info') => {
     setToast({ message, type });
   };
+
+  const saveCarLocation = () => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const newLoc = {
+            lat: position.coords.latitude,
+            lng: position.coords.longitude
+          };
+          setCarLocation(newLoc);
+          localStorage.setItem('guardian-car-location', JSON.stringify(newLoc));
+          showToast(t.carLocationSaved, "success");
+        },
+        (error) => {
+          console.error("Error getting location for car:", error);
+          showToast("Erro ao obter localização atual.", "error");
+        }
+      );
+    }
+  };
+
+  const openCarRoute = () => {
+    if (carLocation) {
+      const url = `https://www.google.com/maps/dir/?api=1&destination=${carLocation.lat},${carLocation.lng}&travelmode=walking`;
+      window.open(url, '_blank');
+    } else {
+      showToast(t.carNotMarked, "error");
+    }
+  };
   
   // Dashboard Data
   const [neighborAlerts, setNeighborAlerts] = useState<NeighborAlert[]>([]);
@@ -2046,17 +2255,29 @@ export default function App() {
   const [medications, setMedications] = useState<Medication[]>([]);
   const [services, setServices] = useState<TalentService[]>([]);
   const [isWalking, setIsWalking] = useState(false);
+  const toggleWalking = () => {
+    if (userProfile?.plan !== 'pro') {
+      setShowCheckout(true);
+      return;
+    }
+    setIsWalking(!isWalking);
+  };
   const [heartRate, setHeartRate] = useState(72);
   const [location, setLocation] = useState<{lat: number, lng: number} | null>(null);
   const [destination, setDestination] = useState('');
   const [origin, setOrigin] = useState('');
   const [pharmacies, setPharmacies] = useState<any[]>([]);
+  const [carLocation, setCarLocation] = useState<{lat: number, lng: number} | null>(() => {
+    const saved = localStorage.getItem('guardian-car-location');
+    return saved ? JSON.parse(saved) : null;
+  });
   const [isFetchingPharmacies, setIsFetchingPharmacies] = useState(false);
   const [healthUnitsList, setHealthUnitsList] = useState<any[]>([]);
   const [isFetchingUnits, setIsFetchingUnits] = useState(false);
   const [healthTab, setHealthTab] = useState<'PHARMACIES' | 'UNITS'>('PHARMACIES');
   const [leisureList, setLeisureList] = useState<any[]>([]);
   const [isFetchingLeisure, setIsFetchingLeisure] = useState(false);
+  const [leisureCache, setLeisureCache] = useState<Record<string, any[]>>({});
   const [leisureCategory, setLeisureCategory] = useState<'cinema' | 'mall' | 'theater' | 'bar' | 'restaurant' | 'supermarket' | 'bakery'>('cinema');
   const [leisureSubCategory, setLeisureSubCategory] = useState<string>('');
   const [alertasList, setAlertasList] = useState<Alerta[]>([]);
@@ -2118,8 +2339,12 @@ export default function App() {
           .slice(0, 3); // Ensure only 3
         setPharmacies(foundPharmacies);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error fetching pharmacies:", error);
+      const errStr = JSON.stringify(error);
+      if (errStr.includes("429") || errStr.includes("RESOURCE_EXHAUSTED")) {
+        showToast(t.quotaExceeded, "error");
+      }
     } finally {
       setIsFetchingPharmacies(false);
     }
@@ -2190,8 +2415,12 @@ export default function App() {
           .slice(0, 5); // Increased to 5
         setHealthUnitsList(foundUnits);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error fetching units:", error);
+      const errStr = JSON.stringify(error);
+      if (errStr.includes("429") || errStr.includes("RESOURCE_EXHAUSTED")) {
+        showToast(t.quotaExceeded, "error");
+      }
     } finally {
       setIsFetchingUnits(false);
     }
@@ -2273,25 +2502,39 @@ export default function App() {
           })
           .sort((a: any, b: any) => b.rating - a.rating)
           .slice(0, 3);
+        
         setLeisureList(foundLeisure);
+        setLeisureCache(prev => ({
+          ...prev,
+          [`${category}-${subCategory || ''}`]: foundLeisure
+        }));
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error fetching leisure:", error);
+      const errStr = JSON.stringify(error);
+      if (errStr.includes("429") || errStr.includes("RESOURCE_EXHAUSTED")) {
+        showToast(t.quotaExceeded, "error");
+      }
     } finally {
       setIsFetchingLeisure(false);
     }
   };
 
   useEffect(() => {
-    if (healthTab === 'PHARMACIES') {
+    if (healthTab === 'PHARMACIES' && pharmacies.length === 0) {
       fetchNearbyPharmacies();
-    } else if (healthTab === 'UNITS') {
+    } else if (healthTab === 'UNITS' && healthUnitsList.length === 0) {
       fetchNearbyUnits();
     }
   }, [healthTab]);
 
   useEffect(() => {
-    fetchNearbyLeisure(leisureCategory, leisureSubCategory);
+    const cacheKey = `${leisureCategory}-${leisureSubCategory}`;
+    if (!leisureCache[cacheKey]) {
+      fetchNearbyLeisure(leisureCategory, leisureSubCategory);
+    } else {
+      setLeisureList(leisureCache[cacheKey]);
+    }
   }, [leisureCategory, leisureSubCategory]);
 
   const [isCalculatingRoute, setIsCalculatingRoute] = useState(false);
@@ -2487,10 +2730,31 @@ export default function App() {
   };
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (u) => {
+    const unsubscribe = onAuthStateChanged(auth, async (u) => {
       setUser(u);
       setIsAuthReady(true);
       if (u) {
+        // Fetch or create user profile
+        const userRef = doc(db, 'users', u.uid);
+        try {
+          const userSnap = await getDoc(userRef);
+          if (userSnap.exists()) {
+            setUserProfile(userSnap.data() as UserProfile);
+          } else {
+            const newProfile: UserProfile = {
+              uid: u.uid,
+              email: u.email || "",
+              plan: 'free',
+              isAdmin: u.email === "gersonproenca@gmail.com",
+              timestamp: Date.now()
+            };
+            await setDoc(userRef, newProfile);
+            setUserProfile(newProfile);
+          }
+        } catch (err) {
+          console.error("Error fetching user profile:", err);
+        }
+
         fetchHealthProfile(u.uid);
         fetchUserSettings(u.uid);
         setPersonalData(prev => ({
@@ -2498,10 +2762,117 @@ export default function App() {
           name: u.displayName || prev.name,
           email: u.email || prev.email
         }));
+      } else {
+        setUserProfile(null);
       }
     });
     return () => unsubscribe();
   }, []);
+
+  const upgradeToPro = async () => {
+    if (!user) return;
+    setIsProcessingPurchase(true);
+    // Simulate API call delay
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    
+    const userRef = doc(db, 'users', user.uid);
+    const days = selectedPeriod === 'monthly' ? 30 : 365;
+    const nextBilling = Date.now() + (days * 24 * 60 * 60 * 1000);
+    
+    const subData = {
+      plan: 'pro',
+      subscriptionStatus: 'active',
+      subscriptionPeriod: selectedPeriod,
+      nextBillingDate: nextBilling,
+      paymentMethod: 'Cartão de Crédito (Visa **** 4242)'
+    };
+    
+    await updateDoc(userRef, subData);
+    setUserProfile(prev => prev ? { ...prev, ...subData } : null);
+    setIsProcessingPurchase(false);
+    setShowCheckout(false);
+    showToast(t.purchaseSuccess, "success");
+  };
+
+  const updateUserRole = async (targetUid: string, isAdminStatus: boolean) => {
+    try {
+      const userRef = doc(db, 'users', targetUid);
+      await updateDoc(userRef, { isAdmin: isAdminStatus });
+      showToast(t.userUpdated, 'success');
+    } catch (err) {
+      handleFirestoreError(err, OperationType.UPDATE, `users/${targetUid}`);
+    }
+  };
+
+  const updateUserVip = async (targetUid: string, isVipStatus: boolean) => {
+    try {
+      const userRef = doc(db, 'users', targetUid);
+      const updateData: any = { isVip: isVipStatus };
+      if (isVipStatus) updateData.plan = 'pro';
+      await updateDoc(userRef, updateData);
+      showToast(t.userUpdated, 'success');
+    } catch (err) {
+      handleFirestoreError(err, OperationType.UPDATE, `users/${targetUid}`);
+    }
+  };
+
+  const updateUserPlanManual = async (targetUid: string, newPlan: 'free' | 'pro') => {
+    try {
+      const userRef = doc(db, 'users', targetUid);
+      await updateDoc(userRef, { plan: newPlan });
+      showToast(t.userUpdated, 'success');
+    } catch (err) {
+      handleFirestoreError(err, OperationType.UPDATE, `users/${targetUid}`);
+    }
+  };
+
+  const cancelSubscription = async () => {
+    if (!user) return;
+    setConfirmDialog({
+      title: t.cancelConfirmTitle,
+      message: t.cancelConfirmMessage,
+      onConfirm: async () => {
+        const userRef = doc(db, 'users', user.uid);
+        const cancelData = {
+          plan: 'free',
+          subscriptionStatus: 'inactive',
+          nextBillingDate: null
+        };
+        await updateDoc(userRef, cancelData);
+        setUserProfile(prev => prev ? { ...prev, ...cancelData } : null);
+        setConfirmDialog(null);
+        showToast(t.subscriptionCancelled, "info");
+      },
+      onCancel: () => setConfirmDialog(null)
+    });
+  };
+
+  const ProGuard = ({ children }: { children: React.ReactNode }) => {
+    const isPro = userProfile?.plan === 'pro' || userProfile?.isVip === true;
+    
+    if (isPro) return <>{children}</>;
+    
+    return (
+      <div className="relative group/pro">
+        <div className="filter blur-[2px] pointer-events-none select-none opacity-50">
+          {children}
+        </div>
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/10 dark:bg-slate-900/10 backdrop-blur-[1px] rounded-3xl p-6 text-center z-20">
+          <div className="bg-amber-500 text-white p-2 rounded-full mb-3 shadow-lg">
+            <Star className="w-5 h-5 fill-current" />
+          </div>
+          <h4 className="text-sm font-black text-slate-900 dark:text-slate-100 mb-1">{t.proFeatureTitle}</h4>
+          <p className="text-[10px] text-slate-500 dark:text-slate-400 mb-4 max-w-[200px]">{t.proFeatureDescription}</p>
+          <button 
+            onClick={() => setShowCheckout(true)}
+            className="px-4 py-2 bg-indigo-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-indigo-700 transition-all shadow-md"
+          >
+            {t.upgradeNow}
+          </button>
+        </div>
+      </div>
+    );
+  };
 
   useEffect(() => {
     if (!user) return;
@@ -2529,11 +2900,18 @@ export default function App() {
 
     // Admin Alerts Monitoring
     let unsubAlerts = () => {};
+    let unsubUsers = () => {};
+
     if (isAdmin) {
       const qAlerts = query(collection(db, 'alertas'), orderBy('timestamp', 'desc'), limit(20));
       unsubAlerts = onSnapshot(qAlerts, (snapshot) => {
         setAlertasList(snapshot.docs.map(d => ({ id: d.id, ...d.data() } as Alerta)));
       }, (err) => handleFirestoreError(err, OperationType.LIST, 'alertas'));
+
+      const qUsers = query(collection(db, 'users'), orderBy('timestamp', 'desc'));
+      unsubUsers = onSnapshot(qUsers, (snapshot) => {
+        setAllUsers(snapshot.docs.map(d => ({ uid: d.id, ...d.data() } as UserProfile)));
+      }, (err) => handleFirestoreError(err, OperationType.LIST, 'users'));
     }
 
     return () => {
@@ -2541,8 +2919,9 @@ export default function App() {
       unsubMeds();
       unsubServices();
       unsubAlerts();
+      unsubUsers();
     };
-  }, [user]);
+  }, [user, isAdmin]);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -2683,6 +3062,10 @@ export default function App() {
 
   const analyzeAudio = async () => {
     if (!audioFile || !user) return;
+    if (userProfile?.plan !== 'pro') {
+      setShowCheckout(true);
+      return;
+    }
     setIsAnalyzingAudio(true);
     try {
       // Simulation of audio analysis with Gemini
@@ -2754,20 +3137,19 @@ export default function App() {
       const response = await genAI.models.generateContent({
         model,
         contents: [{ parts: [{ text: `Analise esta mensagem para golpes: "${inputText}"` }] }],
-        config: { responseMimeType: "application/json", systemInstruction: "Você é o Analista do Guardião. Responda em JSON: {verdict, reason, action}" },
+        config: { responseMimeType: "application/json", systemInstruction: "Você é o Analista do O GUARDIAO. Responda em JSON: {verdict, reason, action}" },
       });
       setResult(JSON.parse(response.text || "{}"));
     } catch (error) { console.error(error); }
     finally { setIsAnalyzing(false); }
   };
 
-  const isAdmin = user?.email === 'gersonproenca@gmail.com';
 
   return (
-    <div className="min-h-screen bg-[#F1F5F9] text-slate-900 font-sans selection:bg-indigo-100">
+    <div className="min-h-screen bg-[#F1F5F9] dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans selection:bg-indigo-100">
       {/* Sentinel Bar */}
       <div 
-        className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-200 cursor-pointer select-none"
+        className="sticky top-0 z-50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 cursor-pointer select-none"
         onMouseDown={handlePanicStart}
         onMouseUp={handlePanicEnd}
         onTouchStart={handlePanicStart}
@@ -2781,6 +3163,13 @@ export default function App() {
             </span>
           </div>
           <div className="flex items-center gap-4">
+            <button
+              onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
+              className="p-1.5 rounded-lg bg-slate-50 dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 transition-all border border-slate-200 dark:border-slate-700"
+              title={theme === 'light' ? t.dark : t.light}
+            >
+              {theme === 'light' ? <Moon className="w-3.5 h-3.5" /> : <Sun className="w-3.5 h-3.5" />}
+            </button>
             {user ? (
               <div className="flex items-center gap-3">
                 <span className="text-[10px] font-bold text-slate-400 hidden sm:inline">{user.email}</span>
@@ -2801,29 +3190,36 @@ export default function App() {
       </div>
 
       {/* Main Navigation */}
-      <header className="bg-white border-b border-slate-200 sticky top-14 z-[100]">
+      <header className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 sticky top-14 z-[100]">
         <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3 cursor-pointer" onClick={() => setView('DASHBOARD')}>
             <div className="bg-indigo-600 p-1.5 rounded-lg">
               <ShieldCheck className="w-5 h-5 text-white" />
             </div>
-            <h1 className="font-black text-xl tracking-tighter text-slate-800 uppercase">{t.appName}</h1>
+            <div className="flex items-center gap-2">
+              <h1 className="font-black text-xl tracking-tighter text-slate-800 dark:text-slate-100 uppercase">{t.appName}</h1>
+              {userProfile?.plan === 'pro' && (
+                <span className="bg-amber-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded-md shadow-sm animate-pulse">
+                  {t.proBadge}
+                </span>
+              )}
+            </div>
           </div>
           
           {/* Desktop Nav */}
           <nav className="hidden md:flex items-center gap-6">
-            <button onClick={() => setView('DASHBOARD')} className={`text-sm font-bold transition-colors ${view === 'DASHBOARD' ? 'text-indigo-600' : 'text-slate-500 hover:text-indigo-400'}`}>{t.dashboard}</button>
-            <button onClick={() => setView('SCAM')} className={`text-sm font-bold transition-colors ${view === 'SCAM' ? 'text-indigo-600' : 'text-slate-500 hover:text-indigo-400'}`}>{t.scam}</button>
-            <button onClick={() => setView('EMERGENCY')} className={`text-sm font-bold transition-colors ${view === 'EMERGENCY' ? 'text-indigo-600' : 'text-slate-500 hover:text-indigo-400'}`}>{t.emergency}</button>
-            {isAdmin && <button onClick={() => setView('PAINEL')} className={`text-sm font-bold transition-colors ${view === 'PAINEL' ? 'text-indigo-600' : 'text-slate-500 hover:text-indigo-400'}`}>Painel</button>}
-            <button onClick={() => setView('SETTINGS')} className={`text-sm font-bold transition-colors ${view === 'SETTINGS' ? 'text-indigo-600' : 'text-slate-500 hover:text-indigo-400'}`}>{t.settings}</button>
+            <button onClick={() => setView('DASHBOARD')} title={t.dashboard} className={`text-sm font-bold transition-colors ${view === 'DASHBOARD' ? 'text-indigo-600' : 'text-slate-500 hover:text-indigo-400'}`}>{t.dashboard}</button>
+            <button onClick={() => setView('SCAM')} title={t.scam} className={`text-sm font-bold transition-colors ${view === 'SCAM' ? 'text-indigo-600' : 'text-slate-500 hover:text-indigo-400'}`}>{t.scam}</button>
+            <button onClick={() => setView('EMERGENCY')} title={t.emergency} className={`text-sm font-bold transition-colors ${view === 'EMERGENCY' ? 'text-indigo-600' : 'text-slate-500 hover:text-indigo-400'}`}>{t.emergency}</button>
+            {isAdmin && <button onClick={() => setView('PAINEL')} title={t.adminPanel} className={`text-sm font-bold transition-colors ${view === 'PAINEL' ? 'text-indigo-600' : 'text-slate-500 hover:text-indigo-400'}`}>{t.adminPanel}</button>}
+            <button onClick={() => setView('SETTINGS')} title={t.settings} className={`text-sm font-bold transition-colors ${view === 'SETTINGS' ? 'text-indigo-600' : 'text-slate-500 hover:text-indigo-400'}`}>{t.settings}</button>
           </nav>
 
           {/* Mobile Nav Toggle */}
           <div className="md:hidden flex items-center gap-2">
             <button 
               onClick={() => setShowMobileMenu(!showMobileMenu)}
-              className="p-2 rounded-xl bg-slate-50 text-slate-600 hover:bg-slate-100 transition-all"
+              className="p-2 rounded-xl bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-all"
             >
               <Menu className="w-5 h-5" />
             </button>
@@ -2837,14 +3233,14 @@ export default function App() {
               initial={{ height: 0, opacity: 0 }}
               animate={{ height: 'auto', opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
-              className="md:hidden border-t border-slate-100 overflow-hidden bg-white"
+              className="md:hidden border-t border-slate-100 dark:border-slate-800 overflow-hidden bg-white dark:bg-slate-900"
             >
               <div className="p-4 space-y-2">
                 {[
                   { id: 'DASHBOARD', label: t.dashboard, icon: LayoutDashboard },
                   { id: 'SCAM', label: t.scam, icon: ShieldAlert },
                   { id: 'EMERGENCY', label: t.emergency, icon: AlertTriangle },
-                  ...(isAdmin ? [{ id: 'PAINEL', label: 'Painel', icon: Activity }] : []),
+                  ...(isAdmin ? [{ id: 'PAINEL', label: t.adminPanel, icon: Activity }] : []),
                   { id: 'SETTINGS', label: t.settings, icon: User },
                 ].map((item) => (
                   <button
@@ -2853,10 +3249,11 @@ export default function App() {
                       setView(item.id as any);
                       setShowMobileMenu(false);
                     }}
+                    title={item.label}
                     className={`w-full flex items-center gap-4 p-4 rounded-2xl text-sm font-bold transition-all ${
                       view === item.id 
-                        ? 'bg-indigo-50 text-indigo-600' 
-                        : 'text-slate-500 hover:bg-slate-50'
+                        ? 'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600' 
+                        : 'text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'
                     }`}
                   >
                     <item.icon className="w-5 h-5" />
@@ -2881,181 +3278,245 @@ export default function App() {
             >
               <div className="space-y-8">
                 {/* Block 1: Security */}
-                <section className="bg-white rounded-3xl p-8 shadow-sm border border-slate-200 space-y-8">
+                <section className="bg-white dark:bg-slate-900 rounded-3xl p-8 shadow-sm border border-slate-200 dark:border-slate-800 space-y-8">
                 <div className="flex items-center justify-between">
-                  <h2 className="text-xl font-black flex items-center gap-2">
-                    <Navigation className="w-6 h-6 text-indigo-600" /> {t.localSecurity}
+                  <h2 className="text-3xl font-black flex items-center gap-3 text-slate-900 dark:text-slate-100">
+                    <Navigation className="w-8 h-8 text-indigo-600 dark:text-indigo-400" /> {t.localSecurity}
                   </h2>
-                  <span className="text-[10px] font-bold bg-indigo-50 text-indigo-600 px-3 py-1.5 rounded-full uppercase tracking-wider">{t.santosSP}</span>
+                  <span className="text-[10px] font-bold bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 px-3 py-1.5 rounded-full uppercase tracking-wider">{t.santosSP}</span>
                 </div>
                 
-                <div className="aspect-video bg-slate-100 rounded-3xl relative overflow-hidden flex items-center justify-center border border-slate-200 group">
-                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(79,70,229,0.15),transparent_70%)]" />
-                  
-                  {/* Visual Risk Zones on Map */}
-                  <div className="absolute top-4 left-4 flex flex-col gap-1.5 z-20">
-                    {t.riskZones.map((zone: any, idx: number) => (
-                      <div key={idx} className="flex items-center gap-2 bg-white/80 backdrop-blur px-2 py-1 rounded-lg border border-slate-200 shadow-sm">
-                        <div className={`w-2 h-2 rounded-full ${zone.color}`} />
-                        <span className="text-[8px] font-black text-slate-600 uppercase tracking-tighter">{zone.name}</span>
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Safe Contacts on Map */}
-                  {allowContactLocation && contactAccessPermission && safeContacts.map(contact => (
-                    <motion.div
-                      key={contact.id}
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
-                      className="absolute z-30 group/marker"
-                      style={{ left: `${contact.x}%`, top: `${contact.y}%` }}
-                    >
-                      <div className="relative">
-                        <div className="bg-indigo-600 p-1.5 rounded-full shadow-lg border-2 border-white cursor-pointer hover:scale-110 transition-transform">
-                          <User className="w-3 h-3 text-white" />
-                        </div>
-                        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 opacity-0 group-hover/marker:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
-                          <div className="bg-slate-900 text-white text-[8px] font-black px-2 py-1 rounded-lg uppercase tracking-widest shadow-xl">
-                            {contact.name}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+                  <div className="space-y-4 flex flex-col">
+                    <div className="aspect-square bg-slate-100 dark:bg-slate-800 rounded-3xl relative overflow-hidden flex items-center justify-center border border-slate-200 dark:border-slate-700 group shadow-inner">
+                      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(79,70,229,0.15),transparent_70%)]" />
+                      
+                      {/* Visual Risk Zones on Map */}
+                      <div className="absolute top-4 left-4 flex flex-col gap-1.5 z-20">
+                        {t.riskZones.map((zone: any, idx: number) => (
+                          <div key={idx} className="flex items-center gap-2 bg-white/90 dark:bg-slate-900/90 backdrop-blur px-2 py-1 rounded-lg border border-slate-200 dark:border-slate-700 shadow-sm">
+                            <div className={`w-2 h-2 rounded-full ${zone.color}`} />
+                            <span className="text-[8px] font-black text-slate-600 dark:text-slate-300 uppercase tracking-tighter">{zone.name}</span>
                           </div>
-                        </div>
-                      </div>
-                    </motion.div>
-                  ))}
-
-                  <div className="text-center space-y-3 relative z-10">
-                    <MapPin className="w-10 h-10 text-indigo-500 mx-auto animate-bounce" />
-                    <p className="text-xs font-bold text-slate-600 uppercase tracking-[0.2em]">{t.activeHeatmap}</p>
-                    <p className="text-[10px] text-slate-400 font-medium">{t.routeSuggestion}</p>
-                  </div>
-                  {isWalking && (
-                    <div className="absolute bottom-4 left-4 right-4 bg-white/90 backdrop-blur p-3 rounded-xl border border-indigo-100 flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
-                        <span className="text-[10px] font-bold text-slate-600">{t.monitoringPath}</span>
-                      </div>
-                      <button onClick={simulateFall} className="text-[10px] font-bold text-rose-600 hover:underline">{t.simulateFall}</button>
-                    </div>
-                  )}
-                </div>
-
-                {/* Contact Map Toggle */}
-                <div className="flex items-center justify-between p-4 bg-indigo-50 rounded-2xl border border-indigo-100">
-                  <div className="flex items-center gap-3">
-                    <div className={`p-2 rounded-xl ${contactAccessPermission ? 'bg-indigo-600 text-white' : 'bg-slate-200 text-slate-500'}`}>
-                      <Users className="w-4 h-4" />
-                    </div>
-                    <div>
-                      <p className="text-[10px] font-black text-slate-800 uppercase tracking-widest">{t.showContactsOnMap}</p>
-                      <p className="text-[8px] text-slate-500 font-bold uppercase tracking-tighter">
-                        {contactAccessPermission ? t.contactsSynced : t.contactsNotSynced}
-                      </p>
-                    </div>
-                  </div>
-                  <button 
-                    onClick={() => {
-                      if (!contactAccessPermission) {
-                        setContactAccessPermission(true);
-                        setAllowContactLocation(true);
-                      } else {
-                        setAllowContactLocation(!allowContactLocation);
-                      }
-                    }}
-                    className={`w-10 h-5 rounded-full transition-all relative ${allowContactLocation && contactAccessPermission ? 'bg-indigo-600' : 'bg-slate-300'}`}
-                  >
-                    <div className={`absolute top-0.5 w-4 h-4 bg-white rounded-full transition-all ${(allowContactLocation && contactAccessPermission) ? 'left-5.5' : 'left-0.5'}`} />
-                  </button>
-                </div>
-
-                {/* Safe Route Planning */}
-                <div className="space-y-4 bg-slate-50 p-6 rounded-3xl border border-slate-100">
-                  <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">{t.planSafeRoute}</h3>
-                  <div className="space-y-3">
-                    <div className="relative">
-                      <input 
-                        type="text" 
-                        placeholder={t.fromWhere || "De onde você está saindo?"} 
-                        className="w-full bg-white border border-slate-200 rounded-xl pl-4 pr-12 py-3 text-xs font-medium focus:ring-2 focus:ring-indigo-500 transition-all"
-                        value={origin}
-                        onChange={(e) => setOrigin(e.target.value)}
-                      />
-                      <button 
-                        onClick={getCurrentLocation}
-                        className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all"
-                        title={t.useCurrentLocation || "Usar localização atual"}
-                      >
-                        <MapPin className="w-4 h-4" />
-                      </button>
-                    </div>
-                    <div className="flex gap-2">
-                      <input 
-                        type="text" 
-                        placeholder={t.toWhere || "Para onde você vai?"} 
-                        className="flex-1 bg-white border border-slate-200 rounded-xl px-4 py-3 text-xs font-medium focus:ring-2 focus:ring-indigo-500 transition-all"
-                        value={destination}
-                        onChange={(e) => setDestination(e.target.value)}
-                      />
-                      <button 
-                        onClick={calculateSafeRoute}
-                        disabled={isCalculatingRoute || !destination.trim() || !origin.trim()}
-                        className="bg-indigo-600 text-white p-3 rounded-xl hover:bg-indigo-700 transition-all disabled:opacity-50"
-                      >
-                        {isCalculatingRoute ? <Clock className="w-5 h-5 animate-spin" /> : <Search className="w-5 h-5" />}
-                      </button>
-                    </div>
-                  </div>
-                  {safeRouteSuggestion && (
-                    <motion.div 
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: 'auto' }}
-                      className="bg-indigo-50 p-4 rounded-2xl border border-indigo-100 space-y-4"
-                    >
-                      <div className="space-y-2">
-                        <p className="text-[10px] font-black text-indigo-600 uppercase tracking-widest flex items-center gap-1">
-                          <ShieldCheck className="w-3 h-3" /> {t.recommendedRoute}
-                        </p>
-                        <p className="text-xs text-indigo-900 leading-relaxed font-medium">{safeRouteSuggestion}</p>
+                        ))}
                       </div>
 
-                      {mapUrl && (
-                        <div className="space-y-3">
-                          <div className="w-full h-80 rounded-xl overflow-hidden border border-indigo-200 shadow-sm bg-white">
-                            <iframe
-                              width="100%"
-                              height="100%"
-                              style={{ border: 0 }}
-                              loading="lazy"
-                              allowFullScreen
-                              referrerPolicy="no-referrer"
-                              src={mapUrl}
-                            />
+                      {/* Safe Contacts on Map */}
+                      {allowContactLocation && contactAccessPermission && safeContacts.map(contact => (
+                        <motion.div
+                          key={contact.id}
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                          className="absolute z-30 group/marker"
+                          style={{ left: `${contact.x}%`, top: `${contact.y}%` }}
+                        >
+                          <div className="relative">
+                            <div className="bg-indigo-600 p-1.5 rounded-full shadow-lg border-2 border-white cursor-pointer hover:scale-110 transition-transform">
+                              <User className="w-3 h-3 text-white" />
+                            </div>
+                            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 opacity-0 group-hover/marker:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+                              <div className="bg-slate-900 text-white text-[8px] font-black px-2 py-1 rounded-lg uppercase tracking-widest shadow-xl">
+                                {contact.name}
+                              </div>
+                            </div>
                           </div>
-                          <a 
-                            href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(destination)}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="w-full py-3 bg-white border border-indigo-200 text-indigo-600 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-indigo-50 transition-all"
+                        </motion.div>
+                      ))}
+
+                      <div className="text-center space-y-3 relative z-10 p-4">
+                        <MapPin className="w-10 h-10 text-indigo-500 mx-auto animate-bounce" />
+                        <p className="text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-[0.2em]">{t.activeHeatmap}</p>
+                        <p className="text-[10px] text-slate-400 dark:text-slate-500 font-medium">{t.routeSuggestion}</p>
+                      </div>
+                      {isWalking && (
+                        <div className="absolute bottom-4 left-4 right-4 bg-white/90 dark:bg-slate-900/90 backdrop-blur p-3 rounded-xl border border-indigo-100 dark:border-indigo-900/50 flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
+                            <span className="text-[10px] font-bold text-slate-600 dark:text-slate-300">{t.monitoringPath}</span>
+                          </div>
+                          <button 
+                            onClick={simulateFall} 
+                            title={t.simulateFall}
+                            className="text-[10px] font-bold text-rose-600 dark:text-rose-400 hover:underline"
                           >
-                            <ExternalLink className="w-3 h-3" /> {t.openInGoogleMaps}
-                          </a>
+                            {t.simulateFall}
+                          </button>
                         </div>
                       )}
-                    </motion.div>
-                  )}
+                    </div>
+
+                    {/* Contact Map Toggle */}
+                    <div className="flex items-center justify-between p-4 bg-indigo-50 dark:bg-indigo-900/20 rounded-2xl border border-indigo-100 dark:border-indigo-900/30">
+                      <div className="flex items-center gap-3">
+                        <div className={`p-2 rounded-xl ${contactAccessPermission ? 'bg-indigo-600 text-white' : 'bg-slate-200 dark:bg-slate-800 text-slate-500 dark:text-slate-400'}`}>
+                          <Users className="w-4 h-4" />
+                        </div>
+                        <div>
+                          <p className="text-[10px] font-black text-slate-800 dark:text-slate-200 uppercase tracking-widest">{t.showContactsOnMap}</p>
+                          <p className="text-[8px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-tighter">
+                            {contactAccessPermission ? t.contactsSynced : t.contactsNotSynced}
+                          </p>
+                        </div>
+                      </div>
+                      <button 
+                        onClick={() => {
+                          if (!contactAccessPermission) {
+                            setContactAccessPermission(true);
+                            setAllowContactLocation(true);
+                          } else {
+                            setAllowContactLocation(!allowContactLocation);
+                          }
+                        }}
+                        title={t.showContactsOnMap}
+                        className={`w-10 h-5 rounded-full transition-all relative ${allowContactLocation && contactAccessPermission ? 'bg-indigo-600' : 'bg-slate-300'}`}
+                      >
+                        <div className={`absolute top-0.5 w-4 h-4 bg-white rounded-full transition-all ${(allowContactLocation && contactAccessPermission) ? 'left-5.5' : 'left-0.5'}`} />
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="space-y-6 flex flex-col">
+                    {/* Find My Car Section */}
+                    <div className="flex-1 space-y-5 bg-slate-50 dark:bg-slate-800/50 p-8 rounded-3xl border border-slate-100 dark:border-slate-800 flex flex-col justify-center shadow-sm">
+                      <div className="flex items-center justify-between">
+                        <div className="space-y-1">
+                          <h3 className="text-sm font-black text-slate-900 dark:text-slate-100 uppercase tracking-[0.2em]">{t.findMyCar}</h3>
+                          <div className="h-1 w-12 bg-indigo-500 rounded-full" />
+                        </div>
+                        <div className="p-3 bg-indigo-100 dark:bg-indigo-900/30 rounded-2xl">
+                          <Car className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
+                        </div>
+                      </div>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 font-medium leading-relaxed max-w-md">
+                        {t.carLocationDescription}
+                      </p>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+                        <button 
+                          onClick={saveCarLocation}
+                          title={t.markCarLocation}
+                          className="group flex flex-col items-center justify-center gap-3 p-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl text-[10px] font-black text-slate-700 dark:text-slate-200 uppercase tracking-widest hover:border-indigo-500 hover:shadow-md transition-all active:scale-95"
+                        >
+                          <div className="p-3 bg-slate-50 dark:bg-slate-800 rounded-xl group-hover:bg-indigo-50 dark:group-hover:bg-indigo-900/20 transition-colors">
+                            <MapPin className="w-5 h-5 text-indigo-600" />
+                          </div>
+                          {t.markCarLocation}
+                        </button>
+                        <button 
+                          onClick={openCarRoute}
+                          disabled={!carLocation}
+                          title={t.returnToCar}
+                          className="group flex flex-col items-center justify-center gap-3 p-6 bg-indigo-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-indigo-700 shadow-lg shadow-indigo-200 dark:shadow-none transition-all disabled:opacity-50 disabled:bg-slate-300 dark:disabled:bg-slate-800 active:scale-95"
+                        >
+                          <div className="p-3 bg-white/10 rounded-xl group-hover:bg-white/20 transition-colors">
+                            <Navigation className="w-5 h-5" />
+                          </div>
+                          {t.returnToCar}
+                        </button>
+                      </div>
+                      {carLocation && (
+                        <motion.div 
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          className="mt-2 flex items-center gap-3 px-5 py-4 bg-emerald-50 dark:bg-emerald-900/20 rounded-2xl border border-emerald-100 dark:border-emerald-900/30"
+                        >
+                          <div className="w-2.5 h-2.5 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_10px_rgba(16,185,129,0.5)]" />
+                          <span className="text-[11px] font-black text-emerald-700 dark:text-emerald-400 uppercase tracking-widest">Localização Salva com Sucesso</span>
+                        </motion.div>
+                      )}
+                    </div>
+
+                    {/* Safe Route Planning */}
+                    <div className="space-y-4 bg-slate-50 dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-100 dark:border-slate-800 shadow-sm">
+                      <h3 className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em]">{t.planSafeRoute}</h3>
+                      <div className="space-y-3">
+                        <div className="relative">
+                          <input 
+                            type="text" 
+                            placeholder={t.fromWhere || "De onde você está saindo?"} 
+                            className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl pl-4 pr-12 py-3 text-xs font-medium focus:ring-2 focus:ring-indigo-500 transition-all dark:text-slate-100"
+                            value={origin}
+                            onChange={(e) => setOrigin(e.target.value)}
+                          />
+                          <button 
+                            onClick={getCurrentLocation}
+                            className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 rounded-lg transition-all"
+                            title={t.useCurrentLocation || "Usar localização atual"}
+                          >
+                            <MapPin className="w-4 h-4" />
+                          </button>
+                        </div>
+                        <div className="flex gap-2">
+                          <input 
+                            type="text" 
+                            placeholder={t.toWhere || "Para onde você vai?"} 
+                            className="flex-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-xs font-medium focus:ring-2 focus:ring-indigo-500 transition-all dark:text-slate-100"
+                            value={destination}
+                            onChange={(e) => setDestination(e.target.value)}
+                          />
+                          <button 
+                            onClick={calculateSafeRoute}
+                            disabled={isCalculatingRoute || !destination.trim() || !origin.trim()}
+                            title={t.calculate || "Calcular Rota Segura"}
+                            className="bg-indigo-600 text-white p-3 rounded-xl hover:bg-indigo-700 transition-all disabled:opacity-50"
+                          >
+                            {isCalculatingRoute ? <Clock className="w-5 h-5 animate-spin" /> : <Search className="w-5 h-5" />}
+                          </button>
+                        </div>
+                      </div>
+                      {safeRouteSuggestion && (
+                        <motion.div 
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: 'auto' }}
+                          className="bg-indigo-50 dark:bg-indigo-900/20 p-4 rounded-2xl border border-indigo-100 dark:border-indigo-900/30 space-y-4"
+                        >
+                          <div className="space-y-2">
+                            <p className="text-[10px] font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-widest flex items-center gap-1">
+                              <ShieldCheck className="w-3 h-3" /> {t.recommendedRoute}
+                            </p>
+                            <p className="text-xs text-indigo-900 dark:text-indigo-100 leading-relaxed font-medium">{safeRouteSuggestion}</p>
+                          </div>
+
+                          {mapUrl && (
+                            <div className="space-y-3">
+                              <div className="w-full h-40 rounded-xl overflow-hidden border border-indigo-200 shadow-sm bg-white">
+                                <iframe
+                                  width="100%"
+                                  height="100%"
+                                  style={{ border: 0 }}
+                                  loading="lazy"
+                                  allowFullScreen
+                                  referrerPolicy="no-referrer"
+                                  src={mapUrl}
+                                />
+                              </div>
+                              <a 
+                                href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(destination)}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="w-full py-3 bg-white dark:bg-slate-800 border border-indigo-200 dark:border-indigo-900/50 text-indigo-600 dark:text-indigo-400 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition-all"
+                              >
+                                <ExternalLink className="w-3 h-3" /> {t.openInGoogleMaps}
+                              </a>
+                            </div>
+                          )}
+                        </motion.div>
+                      )}
+                    </div>
+                  </div>
                 </div>
+
 
                 {/* Risk Zones List */}
                 <div className="space-y-3">
-                  <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">{t.attentionZones}</h3>
+                  <h3 className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em]">{t.attentionZones}</h3>
                   <div className="grid grid-cols-1 gap-2">
                     {t.riskZones.map((zone: any, idx: number) => (
-                      <div key={idx} className="flex items-center justify-between p-3 bg-white border border-slate-100 rounded-xl shadow-sm">
+                      <div key={idx} className="flex items-center justify-between p-3 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-xl shadow-sm">
                         <div className="flex items-center gap-3">
                           <div className={`w-2 h-2 rounded-full ${zone.color}`} />
-                          <span className="text-xs font-bold text-slate-700">{zone.name}</span>
+                          <span className="text-xs font-bold text-slate-700 dark:text-slate-200">{zone.name}</span>
                         </div>
-                        <span className={`text-[8px] font-black px-2 py-0.5 rounded-full ${zone.level === 'ALTO' || zone.level === 'HIGH' ? 'bg-rose-100 text-rose-600' : 'bg-amber-100 text-amber-600'}`}>
+                        <span className={`text-[8px] font-black px-2 py-0.5 rounded-full ${zone.level === 'ALTO' || zone.level === 'HIGH' ? 'bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400' : 'bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400'}`}>
                           {t.risk} {zone.level}
                         </span>
                       </div>
@@ -3065,37 +3526,39 @@ export default function App() {
 
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">{t.neighborNetwork}</h3>
-                    <Plus className="w-4 h-4 text-slate-400 cursor-pointer hover:text-indigo-600 transition-colors" />
+                    <h3 className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em]">{t.neighborNetwork}</h3>
+                    <Plus className="w-4 h-4 text-slate-400 dark:text-slate-500 cursor-pointer hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors" />
                   </div>
                   <div className="space-y-3">
                     {neighborAlerts.length > 0 ? neighborAlerts.map(alert => (
-                      <div key={alert.id} className="flex gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-100 hover:border-indigo-100 transition-all">
-                        <div className="w-10 h-10 rounded-xl bg-indigo-100 flex items-center justify-center shrink-0">
-                          <Users className="w-5 h-5 text-indigo-600" />
+                      <div key={alert.id} className="flex gap-4 p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-800 hover:border-indigo-100 dark:hover:border-indigo-900/50 transition-all">
+                        <div className="w-10 h-10 rounded-xl bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center shrink-0">
+                          <Users className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
                         </div>
                         <div>
-                          <p className="text-sm font-bold text-slate-800">{alert.titulo}</p>
-                          <p className="text-xs text-slate-500 leading-relaxed">{alert.descricao}</p>
+                          <p className="text-sm font-bold text-slate-800 dark:text-slate-200">{alert.titulo}</p>
+                          <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">{alert.descricao}</p>
                         </div>
                       </div>
                     )) : (
-                      <p className="text-xs text-slate-400 italic">{t.noRecentAlerts}</p>
+                      <p className="text-xs text-slate-400 dark:text-slate-500 italic">{t.noRecentAlerts}</p>
                     )}
                   </div>
                 </div>
                 
-                <button 
-                  onClick={() => setIsWalking(!isWalking)}
-                  className={`w-full py-5 rounded-2xl font-black text-sm flex items-center justify-center gap-3 transition-all transform active:scale-95 ${
-                    isWalking ? 'bg-rose-600 text-white shadow-xl shadow-rose-200' : 'bg-slate-900 text-white hover:bg-slate-800'
-                  }`}
-                >
-                  {isWalking ? <Zap className="w-5 h-5 animate-pulse" /> : <Navigation className="w-5 h-5" />}
-                  {isWalking 
-                    ? `${t.endWalkWithMe} ${destination ? `${t.to} ${destination.toUpperCase()}` : ''}` 
-                    : `${t.startWalkWithMe} ${destination ? `${t.to} ${destination.toUpperCase()}` : ''}`}
-                </button>
+                  <ProGuard>
+                    <button 
+                      onClick={toggleWalking}
+                      className={`w-full py-5 rounded-2xl font-black text-sm flex items-center justify-center gap-3 transition-all transform active:scale-95 ${
+                        isWalking ? 'bg-rose-600 text-white shadow-xl shadow-rose-200' : 'bg-slate-900 text-white hover:bg-slate-800'
+                      }`}
+                    >
+                      {isWalking ? <Zap className="w-5 h-5 animate-pulse" /> : <Navigation className="w-5 h-5" />}
+                      {isWalking 
+                        ? `${t.endWalkWithMe} ${destination ? `${t.to} ${destination.toUpperCase()}` : ''}` 
+                        : `${t.startWalkWithMe} ${destination ? `${t.to} ${destination.toUpperCase()}` : ''}`}
+                    </button>
+                  </ProGuard>
               </section>
 
               {/* Block 4: Quick Actions (Moved below Security) */}
@@ -3106,12 +3569,20 @@ export default function App() {
                     <p className="text-indigo-100 text-sm font-medium">{t.panicDescription}</p>
                   </div>
                   <div className="grid grid-cols-2 gap-4 mt-12 relative z-10">
-                    <button onClick={() => setView('SCAM')} className="bg-white/10 backdrop-blur-md p-6 rounded-3xl text-left hover:bg-white/20 transition-all border border-white/10 group/btn">
+                    <button 
+                      onClick={() => setView('SCAM')} 
+                      title={t.analyzeScam}
+                      className="bg-white/10 backdrop-blur-md p-6 rounded-3xl text-left hover:bg-white/20 transition-all border border-white/10 group/btn"
+                    >
                       <ShieldQuestion className="w-8 h-8 mb-3 transition-transform group-hover/btn:-rotate-12" />
                       <p className="text-sm font-black">{t.analyzeScam}</p>
                       <p className="text-[10px] text-indigo-200 mt-1">{t.scamDescription}</p>
                     </button>
-                    <button onClick={() => callEmergencyService('190')} className="bg-white/10 backdrop-blur-md p-6 rounded-3xl text-left hover:bg-white/20 transition-all border border-white/10 group/btn">
+                    <button 
+                      onClick={() => callEmergencyService('190')} 
+                      title={t.emergency190}
+                      className="bg-white/10 backdrop-blur-md p-6 rounded-3xl text-left hover:bg-white/20 transition-all border border-white/10 group/btn"
+                    >
                       <Mic className="w-8 h-8 mb-3 transition-transform group-hover/btn:scale-110" />
                       <p className="text-sm font-black">{t.emergency190}</p>
                       <p className="text-[10px] text-indigo-200 mt-1">{t.emergencyDescription}</p>
@@ -3120,61 +3591,73 @@ export default function App() {
                 </section>
 
                 {/* Block 5: Financial Stability */}
-                <section className="bg-white rounded-3xl p-8 shadow-sm border border-slate-200 space-y-8">
+                <section className="bg-white dark:bg-slate-900 rounded-3xl p-8 shadow-sm border border-slate-200 dark:border-slate-800 space-y-8">
                   <div className="flex items-center justify-between">
-                    <h2 className="text-xl font-black flex items-center gap-2">
-                      <Briefcase className="w-6 h-6 text-amber-600" /> {t.financialStability}
+                    <h2 className="text-xl font-black flex items-center gap-2 text-slate-900 dark:text-slate-100">
+                      <Briefcase className="w-6 h-6 text-amber-600 dark:text-amber-500" /> {t.financialStability}
                     </h2>
                   </div>
 
-                  <div className="p-6 bg-amber-50 rounded-3xl border border-amber-100 flex items-start gap-5">
-                    <div className="p-3 bg-white rounded-2xl shadow-sm">
-                      <ShieldAlert className="w-6 h-6 text-amber-600" />
+                  <div className="p-6 bg-amber-50 dark:bg-amber-900/20 rounded-3xl border border-amber-100 dark:border-amber-900/30 flex items-start gap-5">
+                    <div className="p-3 bg-white dark:bg-slate-800 rounded-2xl shadow-sm">
+                      <ShieldAlert className="w-6 h-6 text-amber-600 dark:text-amber-500" />
                     </div>
                     <div className="space-y-1">
-                      <p className="text-sm font-black text-amber-900">{t.antiFraudShieldActive}</p>
-                      <p className="text-xs text-amber-700 leading-relaxed">{t.aiMonitoringDescription}</p>
+                      <p className="text-sm font-black text-amber-900 dark:text-amber-100">{t.antiFraudShieldActive}</p>
+                      <p className="text-xs text-amber-700 dark:text-amber-400 leading-relaxed">{t.aiMonitoringDescription}</p>
                     </div>
                   </div>
 
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
-                      <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">{t.generalConsultancies}</h3>
-                      <Search className="w-4 h-4 text-slate-400 hover:text-indigo-600 cursor-pointer" />
+                      <h3 className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em]">{t.generalConsultancies}</h3>
+                      <Search className="w-4 h-4 text-slate-400 dark:text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 cursor-pointer" />
                     </div>
                     <div className="grid grid-cols-1 gap-4">
                       {services.length > 0 ? services.map(service => (
-                        <div key={service.id} className="p-5 border border-slate-100 rounded-3xl hover:border-indigo-200 transition-all cursor-pointer group bg-slate-50/50">
+                        <div key={service.id} className="p-5 border border-slate-100 dark:border-slate-800 rounded-3xl hover:border-indigo-200 dark:hover:border-indigo-900/50 transition-all cursor-pointer group bg-slate-50/50 dark:bg-slate-800/30">
                           <div className="flex items-center justify-between mb-3">
-                            <span className="text-[10px] font-bold bg-white border border-slate-200 px-3 py-1 rounded-full text-slate-600 uppercase tracking-wider">{service.categoria}</span>
-                            <div className="flex items-center gap-1 text-emerald-600">
+                            <span className="text-[10px] font-bold bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-3 py-1 rounded-full text-slate-600 dark:text-slate-300 uppercase tracking-wider">{service.categoria}</span>
+                            <div className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
                               <CheckCircle2 className="w-3 h-3" />
                               <span className="text-[10px] font-bold">{t.safeLabel}</span>
                             </div>
                           </div>
-                          <p className="text-base font-black text-slate-800 mb-1">{service.titulo}</p>
-                          <p className="text-xs text-slate-500 leading-relaxed mb-4">{service.descricao}</p>
-                          <div className="flex items-center justify-between pt-4 border-t border-slate-100">
-                            <span className="text-sm font-black text-indigo-600">{service.preco}</span>
-                            <button className="text-[10px] font-black bg-slate-900 text-white px-4 py-2 rounded-xl uppercase tracking-widest hover:bg-indigo-600 transition-colors">{t.hire}</button>
+                          <p className="text-base font-black text-slate-800 dark:text-slate-100 mb-1">{service.titulo}</p>
+                          <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed mb-4">{service.descricao}</p>
+                          <div className="flex items-center justify-between pt-4 border-t border-slate-100 dark:border-slate-800">
+                            <span className="text-sm font-black text-indigo-600 dark:text-indigo-400">{service.preco}</span>
+                            <button 
+                              title={t.hire}
+                              className="text-[10px] font-black bg-slate-900 dark:bg-slate-700 text-white px-4 py-2 rounded-xl uppercase tracking-widest hover:bg-indigo-600 dark:hover:bg-indigo-500 transition-colors"
+                            >
+                              {t.hire}
+                            </button>
                           </div>
                         </div>
                       )) : (
-                        <div className="p-5 border border-slate-100 rounded-3xl bg-slate-50/50">
-                          <div className="flex items-center justify-between mb-3">
-                            <span className="text-[10px] font-bold bg-white border border-slate-200 px-3 py-1 rounded-full text-slate-600 uppercase tracking-wider">{t.specialist}</span>
-                            <div className="flex items-center gap-1 text-emerald-600">
-                              <CheckCircle2 className="w-3 h-3" />
-                              <span className="text-[10px] font-bold">{t.verified}</span>
-                            </div>
-                          </div>
-                          <p className="text-base font-black text-slate-800 mb-1">{t.strategicConsultancy}</p>
-                          <p className="text-xs text-slate-500 leading-relaxed mb-4">{t.consultancyDescription}</p>
-                          <div className="flex items-center justify-between pt-4 border-t border-slate-100">
-                            <span className="text-sm font-black text-indigo-600">{t.toBeAgreed}</span>
-                            <button className="text-[10px] font-black bg-slate-900 text-white px-4 py-2 rounded-xl uppercase tracking-widest">{t.learnMore}</button>
-                          </div>
+                  <ProGuard>
+                    <div className="p-5 border border-slate-100 dark:border-slate-800 rounded-3xl bg-slate-50/50 dark:bg-slate-800/30">
+                      <div className="flex items-center justify-between mb-3">
+                        <span className="text-[10px] font-bold bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-3 py-1 rounded-full text-slate-600 dark:text-slate-300 uppercase tracking-wider">{t.specialist}</span>
+                        <div className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
+                          <CheckCircle2 className="w-3 h-3" />
+                          <span className="text-[10px] font-bold">{t.verified}</span>
                         </div>
+                      </div>
+                      <p className="text-base font-black text-slate-800 dark:text-slate-100 mb-1">{t.strategicConsultancy}</p>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed mb-4">{t.consultancyDescription}</p>
+                      <div className="flex items-center justify-between pt-4 border-t border-slate-100 dark:border-slate-800">
+                        <span className="text-sm font-black text-indigo-600 dark:text-indigo-400">{t.toBeAgreed}</span>
+                        <button 
+                          title={t.learnMore}
+                          className="text-[10px] font-black bg-slate-900 dark:bg-slate-700 text-white px-4 py-2 rounded-xl uppercase tracking-widest"
+                        >
+                          {t.learnMore}
+                        </button>
+                      </div>
+                    </div>
+                  </ProGuard>
                       )}
                     </div>
                   </div>
@@ -3183,88 +3666,89 @@ export default function App() {
 
               <div className="space-y-8">
                 {/* Block 2: Health */}
-                <section className="bg-white rounded-3xl p-8 shadow-sm border border-slate-200 space-y-8">
+                <section className="bg-white dark:bg-slate-900 rounded-3xl p-8 shadow-sm border border-slate-200 dark:border-slate-800 space-y-8">
                 <div className="flex items-center justify-between">
-                  <h2 className="text-xl font-black flex items-center gap-2">
-                    <Heart className="w-6 h-6 text-rose-600" /> {t.healthWellness}
+                  <h2 className="text-xl font-black flex items-center gap-2 text-slate-900 dark:text-slate-100">
+                    <Heart className="w-6 h-6 text-rose-600 dark:text-rose-400" /> {t.healthWellness}
                   </h2>
-                  <div className="flex items-center gap-2 text-rose-600 bg-rose-50 px-3 py-1.5 rounded-full">
+                  <div className="flex items-center gap-2 text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-900/30 px-3 py-1.5 rounded-full">
                     <Activity className="w-4 h-4" />
                     <span className="text-sm font-black tracking-tighter">{heartRate} BPM</span>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="p-5 bg-slate-50 rounded-2xl border border-slate-100 space-y-2">
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{t.aiCheckup}</p>
-                    <p className="text-xs font-bold text-slate-700 leading-tight">{t.heartRateStable}</p>
+                  <div className="p-5 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-800 space-y-2">
+                    <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">{t.aiCheckup}</p>
+                    <p className="text-xs font-bold text-slate-700 dark:text-slate-200 leading-tight">{t.heartRateStable}</p>
                   </div>
-                  <div className="p-5 bg-slate-50 rounded-2xl border border-slate-100 space-y-3">
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{t.nextMedication}</p>
+                  <div className="p-5 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-800 space-y-3">
+                    <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">{t.nextMedication}</p>
                     {medications.length > 0 ? (
                       <div className="flex items-center gap-3">
-                        <div className="p-2 bg-indigo-100 rounded-lg">
-                          <Pill className="w-4 h-4 text-indigo-600" />
+                        <div className="p-2 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg">
+                          <Pill className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
                         </div>
                         <div>
-                          <p className="text-xs font-bold text-slate-800">{medications[0].nome}</p>
-                          <p className="text-[10px] text-slate-500">{medications[0].horario} • {medications[0].dosagem}</p>
+                          <p className="text-xs font-bold text-slate-800 dark:text-slate-200">{medications[0].nome}</p>
+                          <p className="text-[10px] text-slate-500 dark:text-slate-400">{medications[0].horario} • {medications[0].dosagem}</p>
                         </div>
                       </div>
                     ) : (
-                      <p className="text-xs font-bold text-slate-400 italic">{t.noActiveReminders}</p>
+                      <p className="text-xs font-bold text-slate-400 dark:text-slate-500 italic">{t.noActiveReminders}</p>
                     )}
                   </div>
                 </div>
 
-                <div className="bg-indigo-900 rounded-3xl p-8 text-white flex flex-col sm:flex-row items-center gap-8 relative overflow-hidden">
-                  <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-800 rounded-full -mr-16 -mt-16 opacity-50" />
-                  <div className="bg-white p-3 rounded-2xl shadow-2xl relative z-10">
+                <div className="bg-indigo-900 dark:bg-indigo-950 rounded-3xl p-8 text-white flex flex-col sm:flex-row items-center gap-8 relative overflow-hidden">
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-800 dark:bg-indigo-900 rounded-full -mr-16 -mt-16 opacity-50" />
+                  <div className="bg-white dark:bg-slate-800 p-3 rounded-2xl shadow-2xl relative z-10">
                     <QRCodeCanvas value={user?.uid || 'no-user'} size={80} />
                   </div>
                   <div className="space-y-2 text-center sm:text-left relative z-10">
                     <h3 className="text-lg font-black flex items-center justify-center sm:justify-start gap-2">
                       <QrCode className="w-5 h-5" /> {t.universalWallet}
                     </h3>
-                    <p className="text-xs text-indigo-200 leading-relaxed max-w-[200px]">{t.qrCodeDescription}</p>
+                    <p className="text-xs text-indigo-200 dark:text-indigo-300 leading-relaxed max-w-[200px]">{t.qrCodeDescription}</p>
                     <button className="text-xs font-bold underline hover:text-white transition-colors">{t.manageMedicalData}</button>
                   </div>
                 </div>
 
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">{t.monitoringDevices}</h3>
+                    <h3 className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em]">{t.monitoringDevices}</h3>
                     <button 
                       onClick={() => setShowAddDevice(true)}
-                      className="p-1.5 bg-rose-50 text-rose-600 rounded-lg hover:bg-rose-100 transition-colors"
+                      title={t.addNewDevice || "Adicionar Novo Dispositivo"}
+                      className="p-1.5 bg-rose-50 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 rounded-lg hover:bg-rose-100 dark:hover:bg-rose-900/50 transition-colors"
                     >
                       <Plus className="w-4 h-4" />
                     </button>
                   </div>
                   <div className="grid grid-cols-1 gap-3">
                     {devices.length > 0 ? devices.map(device => (
-                      <div key={device.id} className="p-4 bg-slate-50 rounded-2xl border border-slate-100 flex items-center justify-between group">
+                      <div key={device.id} className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-800 flex items-center justify-between group">
                         <div className="flex items-center gap-3">
-                          <div className={`p-2 rounded-xl ${device.status === 'connected' ? 'bg-emerald-100 text-emerald-600' : 'bg-slate-200 text-slate-400'}`}>
+                          <div className={`p-2 rounded-xl ${device.status === 'connected' ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400' : 'bg-slate-200 dark:bg-slate-700 text-slate-400 dark:text-slate-500'}`}>
                             {device.type === 'smartwatch' ? <Zap className="w-4 h-4" /> : <Activity className="w-4 h-4" />}
                           </div>
                           <div>
-                            <p className="text-sm font-bold text-slate-800">{device.name}</p>
+                            <p className="text-sm font-bold text-slate-800 dark:text-slate-200">{device.name}</p>
                             <div className="flex items-center gap-1.5">
-                              <div className={`w-1.5 h-1.5 rounded-full ${device.status === 'connected' ? 'bg-emerald-500 animate-pulse' : 'bg-slate-300'}`} />
-                              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">
+                              <div className={`w-1.5 h-1.5 rounded-full ${device.status === 'connected' ? 'bg-emerald-500 animate-pulse' : 'bg-slate-300 dark:bg-slate-600'}`} />
+                              <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-tighter">
                                 {device.status === 'connected' ? t.connected : t.disconnected}
                               </p>
                             </div>
                             <div className="mt-2 flex items-center gap-2">
-                              <Clock className="w-3 h-3 text-slate-400" />
+                              <Clock className="w-3 h-3 text-slate-400 dark:text-slate-500" />
                               <select 
                                 value={device.readingInterval}
                                 onChange={(e) => updateDeviceInterval(device.id, parseInt(e.target.value))}
-                                className="text-[10px] font-bold text-slate-500 bg-transparent border-none p-0 focus:ring-0 cursor-pointer"
+                                className="text-[10px] font-bold text-slate-500 dark:text-slate-400 bg-transparent border-none p-0 focus:ring-0 cursor-pointer"
                               >
                                 {[1, 3, 5, 10, 30, 60].map(val => (
-                                  <option key={val} value={val}>{val}s</option>
+                                  <option key={val} value={val} className="dark:bg-slate-800">{val}s</option>
                                 ))}
                               </select>
                             </div>
@@ -3272,30 +3756,31 @@ export default function App() {
                         </div>
                         <div className="flex items-center gap-4">
                           <div className="text-right">
-                            <p className="text-sm font-black text-slate-800">{device.value} <span className="text-[10px] text-slate-400">{device.unit}</span></p>
-                            <p className="text-[9px] text-slate-400 font-bold uppercase">{t.realTimeData}</p>
+                            <p className="text-sm font-black text-slate-800 dark:text-slate-200">{device.value} <span className="text-[10px] text-slate-400 dark:text-slate-500">{device.unit}</span></p>
+                            <p className="text-[9px] text-slate-400 dark:text-slate-500 font-bold uppercase">{t.realTimeData}</p>
                           </div>
                           <button 
                             onClick={() => removeDevice(device.id)}
-                            className="p-1.5 text-slate-300 hover:text-rose-500 transition-colors opacity-0 group-hover:opacity-100"
+                            title={t.remove || "Remover Dispositivo"}
+                            className="p-1.5 text-slate-300 dark:text-slate-600 hover:text-rose-500 dark:hover:text-rose-400 transition-colors opacity-0 group-hover:opacity-100"
                           >
                             <Trash2 className="w-4 h-4" />
                           </button>
                         </div>
                       </div>
                     )) : (
-                      <p className="text-xs text-slate-400 italic text-center py-4">{t.noDevices}</p>
+                      <p className="text-xs text-slate-400 dark:text-slate-500 italic text-center py-4">{t.noDevices}</p>
                     )}
                   </div>
                 </div>
 
-                <div className="flex p-1 bg-slate-100 rounded-xl mb-6">
+                <div className="flex p-1 bg-slate-100 dark:bg-slate-800 rounded-xl mb-6">
                   <button 
                     onClick={() => {
                       if (healthTab === 'PHARMACIES') fetchNearbyPharmacies();
                       else setHealthTab('PHARMACIES');
                     }}
-                    className={`flex-1 py-2 text-[10px] font-bold uppercase tracking-wider rounded-lg transition-all ${healthTab === 'PHARMACIES' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+                    className={`flex-1 py-2 text-[10px] font-bold uppercase tracking-wider rounded-lg transition-all ${healthTab === 'PHARMACIES' ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-sm' : 'text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300'}`}
                   >
                     {t.nearbyPharmacies}
                   </button>
@@ -3304,17 +3789,29 @@ export default function App() {
                       if (healthTab === 'UNITS') fetchNearbyUnits();
                       else setHealthTab('UNITS');
                     }}
-                    className={`flex-1 py-2 text-[10px] font-bold uppercase tracking-wider rounded-lg transition-all ${healthTab === 'UNITS' ? 'bg-white text-rose-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+                    className={`flex-1 py-2 text-[10px] font-bold uppercase tracking-wider rounded-lg transition-all ${healthTab === 'UNITS' ? 'bg-white dark:bg-slate-700 text-rose-600 dark:text-rose-400 shadow-sm' : 'text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300'}`}
                   >
                     {t.nearbyUnits}
+                  </button>
+                </div>
+
+                <div className="flex justify-end mb-4">
+                    <button 
+                      onClick={() => healthTab === 'PHARMACIES' ? fetchNearbyPharmacies() : fetchNearbyUnits()}
+                      disabled={isFetchingPharmacies || isFetchingUnits}
+                      title={t.refresh}
+                      className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-widest text-slate-400 hover:text-indigo-600 transition-colors disabled:opacity-50"
+                    >
+                    <Clock className={`w-3 h-3 ${(isFetchingPharmacies || isFetchingUnits) ? 'animate-spin' : ''}`} />
+                    {t.refresh}
                   </button>
                 </div>
 
                 {healthTab === 'PHARMACIES' ? (
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
-                      <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">{t.nearbyPharmacies}</h3>
-                      {isFetchingPharmacies && <Clock className="w-4 h-4 animate-spin text-indigo-600" />}
+                      <h3 className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em]">{t.nearbyPharmacies}</h3>
+                      {isFetchingPharmacies && <Clock className="w-4 h-4 animate-spin text-indigo-600 dark:text-indigo-400" />}
                     </div>
                     <div className="space-y-3">
                       {pharmacies.map((pharmacy, idx) => (
@@ -3323,24 +3820,24 @@ export default function App() {
                           href={pharmacy.uri} 
                           target="_blank" 
                           rel="noopener noreferrer"
-                          className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100 hover:border-indigo-100 transition-all cursor-pointer"
+                          className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-800 hover:border-indigo-100 dark:hover:border-indigo-900/50 transition-all cursor-pointer"
                         >
                           <div className="flex items-center gap-4">
-                            <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-indigo-100 text-indigo-600">
+                            <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400">
                               <Pill className="w-5 h-5" />
                             </div>
                             <div>
-                              <span className="text-sm font-bold text-slate-800">{pharmacy.name}</span>
-                              <p className="text-[10px] text-slate-400 font-bold uppercase">{t.pharmacy}</p>
+                              <span className="text-sm font-bold text-slate-800 dark:text-slate-200">{pharmacy.name}</span>
+                              <p className="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase">{t.pharmacy}</p>
                             </div>
                           </div>
                           <div className="flex items-center gap-3">
                             {pharmacy.distance && (
-                              <span className="text-[10px] font-black text-indigo-600 bg-indigo-50 px-2 py-1 rounded-lg">
+                              <span className="text-[10px] font-black text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/30 px-2 py-1 rounded-lg">
                                 {pharmacy.distance}
                               </span>
                             )}
-                            <div className="flex items-center gap-1 text-[9px] font-black text-slate-400 uppercase tracking-tighter group-hover:text-indigo-600 transition-colors">
+                            <div className="flex items-center gap-1 text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-tighter group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
                               <span>{t.openInGoogleMaps || "Ver no Mapa"}</span>
                               <ExternalLink className="w-3 h-3" />
                             </div>
@@ -3352,8 +3849,8 @@ export default function App() {
                 ) : (
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
-                      <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">{t.nearbyUnits}</h3>
-                      {isFetchingUnits && <Clock className="w-4 h-4 animate-spin text-rose-600" />}
+                      <h3 className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em]">{t.nearbyUnits}</h3>
+                      {isFetchingUnits && <Clock className="w-4 h-4 animate-spin text-rose-600 dark:text-rose-400" />}
                     </div>
                     <div className="space-y-3">
                       {healthUnitsList.map((unit, idx) => (
@@ -3362,24 +3859,24 @@ export default function App() {
                           href={unit.uri} 
                           target="_blank" 
                           rel="noopener noreferrer"
-                          className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100 hover:border-rose-100 transition-all cursor-pointer"
+                          className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-800 hover:border-rose-100 dark:hover:border-rose-900/50 transition-all cursor-pointer"
                         >
                           <div className="flex items-center gap-4">
-                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${unit.type === 'Hospital' ? 'bg-rose-100 text-rose-600' : 'bg-amber-100 text-amber-600'}`}>
+                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${unit.type === 'Hospital' ? 'bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400' : 'bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400'}`}>
                               <MapPin className="w-5 h-5" />
                             </div>
                             <div>
-                              <span className="text-sm font-bold text-slate-800">{unit.name}</span>
-                              <p className="text-[10px] text-slate-400 font-bold uppercase">{unit.type}</p>
+                              <span className="text-sm font-bold text-slate-800 dark:text-slate-200">{unit.name}</span>
+                              <p className="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase">{unit.type}</p>
                             </div>
                           </div>
                           <div className="flex items-center gap-3">
                             {unit.distance && (
-                              <span className={`text-[10px] font-black px-2 py-1 rounded-lg ${unit.type === 'Hospital' ? 'text-rose-600 bg-rose-50' : 'text-amber-600 bg-amber-50'}`}>
+                              <span className={`text-[10px] font-black px-2 py-1 rounded-lg ${unit.type === 'Hospital' ? 'text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-900/30' : 'text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/30'}`}>
                                 {unit.distance}
                               </span>
                             )}
-                            <div className="flex items-center gap-1 text-[9px] font-black text-slate-400 uppercase tracking-tighter group-hover:text-rose-600 transition-colors">
+                            <div className="flex items-center gap-1 text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-tighter group-hover:text-rose-600 dark:group-hover:text-rose-400 transition-colors">
                               <span>{t.openInGoogleMaps || "Ver no Mapa"}</span>
                               <ExternalLink className="w-3 h-3" />
                             </div>
@@ -3392,10 +3889,10 @@ export default function App() {
               </section>
 
               {/* Block 3: Leisure & Culture */}
-              <section className="bg-white rounded-3xl p-8 shadow-sm border border-slate-200 space-y-8">
+              <section className="bg-white dark:bg-slate-900 rounded-3xl p-8 shadow-sm border border-slate-200 dark:border-slate-800 space-y-8">
                 <div className="flex items-center justify-between">
-                  <h2 className="text-xl font-black flex items-center gap-2">
-                    <Clapperboard className="w-6 h-6 text-indigo-600" /> {t.leisureCulture}
+                  <h2 className="text-xl font-black flex items-center gap-2 text-slate-900 dark:text-slate-100">
+                    <Clapperboard className="w-6 h-6 text-indigo-600 dark:text-indigo-400" /> {t.leisureCulture}
                   </h2>
                 </div>
 
@@ -3417,8 +3914,8 @@ export default function App() {
                       }}
                       className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
                         leisureCategory === cat.id 
-                          ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-100' 
-                          : 'bg-slate-50 text-slate-600 hover:bg-slate-100'
+                          ? 'bg-indigo-600 dark:bg-indigo-500 text-white shadow-lg shadow-indigo-100 dark:shadow-none' 
+                          : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'
                       }`}
                     >
                       <cat.icon className="w-4 h-4" />
@@ -3431,30 +3928,30 @@ export default function App() {
                   <motion.div 
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="p-4 bg-slate-50 rounded-2xl border border-slate-100 space-y-3"
+                    className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-800 space-y-3"
                   >
-                    <div className="flex items-center gap-2 text-indigo-600">
+                    <div className="flex items-center gap-2 text-indigo-600 dark:text-indigo-400">
                       <Search className="w-4 h-4" />
                       <span className="text-xs font-bold uppercase tracking-wider">{t.advancedSearch}</span>
                     </div>
                     <div className="space-y-1">
-                      <label htmlFor="food-type" className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                      <label htmlFor="food-type" className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
                         {t.foodType}
                       </label>
                       <select
                         id="food-type"
                         value={leisureSubCategory}
                         onChange={(e) => setLeisureSubCategory(e.target.value)}
-                        className="w-full p-3 bg-white rounded-xl border border-slate-200 text-sm font-medium text-slate-700 outline-none focus:border-indigo-300 transition-all cursor-pointer"
+                        className="w-full p-3 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 text-sm font-medium text-slate-700 dark:text-slate-200 outline-none focus:border-indigo-300 dark:focus:border-indigo-500 transition-all cursor-pointer"
                       >
-                        <option value="">{t.allTypes}</option>
-                        <option value="italian">{t.italian}</option>
-                        <option value="japanese">{t.japanese}</option>
-                        <option value="brazilian">{t.brazilian}</option>
-                        <option value="fastFood">{t.fastFood}</option>
-                        <option value="healthy">{t.healthy}</option>
-                        <option value="pizza">{t.pizza}</option>
-                        <option value="seafood">{t.seafood}</option>
+                        <option value="" className="dark:bg-slate-800">{t.allTypes}</option>
+                        <option value="italian" className="dark:bg-slate-800">{t.italian}</option>
+                        <option value="japanese" className="dark:bg-slate-800">{t.japanese}</option>
+                        <option value="brazilian" className="dark:bg-slate-800">{t.brazilian}</option>
+                        <option value="fastFood" className="dark:bg-slate-800">{t.fastFood}</option>
+                        <option value="healthy" className="dark:bg-slate-800">{t.healthy}</option>
+                        <option value="pizza" className="dark:bg-slate-800">{t.pizza}</option>
+                        <option value="seafood" className="dark:bg-slate-800">{t.seafood}</option>
                       </select>
                     </div>
                   </motion.div>
@@ -3462,8 +3959,18 @@ export default function App() {
 
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">{t.findLeisure}</h3>
-                    {isFetchingLeisure && <Clock className="w-4 h-4 animate-spin text-indigo-600" />}
+                    <h3 className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em]">{t.findLeisure}</h3>
+                    <div className="flex items-center gap-2">
+                      {isFetchingLeisure && <Clock className="w-4 h-4 animate-spin text-indigo-600 dark:text-indigo-400" />}
+                      <button 
+                        onClick={() => fetchNearbyLeisure(leisureCategory, leisureSubCategory)}
+                        disabled={isFetchingLeisure}
+                        className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-widest text-slate-400 hover:text-indigo-600 transition-colors disabled:opacity-50"
+                      >
+                        <Clock className={`w-3 h-3 ${isFetchingLeisure ? 'animate-spin' : ''}`} />
+                        {t.refresh}
+                      </button>
+                    </div>
                   </div>
                   <div className="space-y-3">
                     {leisureList.length > 0 ? leisureList.map((item, idx) => (
@@ -3472,10 +3979,10 @@ export default function App() {
                         href={item.uri} 
                         target="_blank" 
                         rel="noopener noreferrer"
-                        className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100 hover:border-indigo-100 transition-all cursor-pointer"
+                        className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-800 hover:border-indigo-100 dark:hover:border-indigo-900/50 transition-all cursor-pointer group"
                       >
                         <div className="flex items-center gap-4">
-                          <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-indigo-100 text-indigo-600">
+                          <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400">
                             {leisureCategory === 'cinema' && <Clapperboard className="w-5 h-5" />}
                             {leisureCategory === 'mall' && <ShoppingBag className="w-5 h-5" />}
                             {leisureCategory === 'theater' && <Theater className="w-5 h-5" />}
@@ -3485,13 +3992,13 @@ export default function App() {
                             {leisureCategory === 'bakery' && <Store className="w-5 h-5" />}
                           </div>
                           <div>
-                            <span className="text-sm font-bold text-slate-800">{item.name}</span>
+                            <span className="text-sm font-bold text-slate-800 dark:text-slate-200">{item.name}</span>
                             <div className="flex items-center gap-2">
-                              <p className="text-[10px] text-slate-400 font-bold uppercase">{t[leisureCategory]}</p>
+                              <p className="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase">{t[leisureCategory]}</p>
                               {item.rating > 0 && (
-                                <div className="flex items-center gap-1 bg-amber-50 px-1.5 py-0.5 rounded-md border border-amber-100">
+                                <div className="flex items-center gap-1 bg-amber-50 dark:bg-amber-900/20 px-1.5 py-0.5 rounded-md border border-amber-100 dark:border-amber-900/30">
                                   <Star className="w-2.5 h-2.5 text-amber-500 fill-amber-500" />
-                                  <span className="text-[9px] font-black text-amber-700">{item.rating}</span>
+                                  <span className="text-[9px] font-black text-amber-700 dark:text-amber-400">{item.rating}</span>
                                 </div>
                               )}
                             </div>
@@ -3499,18 +4006,18 @@ export default function App() {
                         </div>
                         <div className="flex items-center gap-3">
                           {item.distance && (
-                            <span className="text-[10px] font-black text-indigo-600 bg-indigo-50 px-2 py-1 rounded-lg">
+                            <span className="text-[10px] font-black text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/30 px-2 py-1 rounded-lg">
                               {item.distance}
                             </span>
                           )}
-                          <div className="flex items-center gap-1 text-[9px] font-black text-slate-400 uppercase tracking-tighter group-hover:text-indigo-600 transition-colors">
+                          <div className="flex items-center gap-1 text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-tighter group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
                             <span>{t.openInGoogleMaps || "Ver no Mapa"}</span>
                             <ExternalLink className="w-3 h-3" />
                           </div>
                         </div>
                       </a>
                     )) : !isFetchingLeisure && (
-                      <p className="text-xs text-slate-400 italic text-center py-4">{t.noRecentAlerts}</p>
+                      <p className="text-xs text-slate-400 dark:text-slate-500 italic text-center py-4">{t.noRecentAlerts}</p>
                     )}
                   </div>
                 </div>
@@ -3522,28 +4029,28 @@ export default function App() {
           {view === 'SCAM' && (
             <motion.div key="scam" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="max-w-2xl mx-auto space-y-6">
               {/* Settings Section */}
-              <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-200 space-y-8">
+              <div className="bg-white dark:bg-slate-900 rounded-3xl p-8 shadow-sm border border-slate-200 dark:border-slate-800 space-y-8">
                 <div className="flex items-center justify-between">
-                  <h2 className="text-xl font-black flex items-center gap-2">
-                    <ShieldAlert className="w-6 h-6 text-indigo-600" /> {t.shieldSettings}
+                  <h2 className="text-xl font-black flex items-center gap-2 text-slate-900 dark:text-slate-100">
+                    <ShieldAlert className="w-6 h-6 text-indigo-600 dark:text-indigo-400" /> {t.shieldSettings}
                   </h2>
                   <div className="flex items-center gap-2">
-                    <span className={`text-[10px] font-black px-3 py-1 rounded-full ${autoMonitoring ? 'bg-emerald-100 text-emerald-600' : 'bg-slate-100 text-slate-400'}`}>
+                    <span className={`text-[10px] font-black px-3 py-1 rounded-full ${autoMonitoring ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400' : 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500'}`}>
                       {autoMonitoring ? t.protectionActive : t.protectionDisabled}
                     </span>
                   </div>
                 </div>
 
                 <div className="space-y-6">
-                  <div className="p-4 bg-indigo-50 rounded-2xl border border-indigo-100">
+                  <div className="p-4 bg-indigo-50 dark:bg-indigo-900/20 rounded-2xl border border-indigo-100 dark:border-indigo-900/30">
                     <div className="flex items-center justify-between mb-2">
                       <div>
-                        <p className="text-sm font-black text-indigo-900">{t.globalMonitoring}</p>
-                        <p className="text-[10px] text-indigo-700">{t.globalMonitoringDescription}</p>
+                        <p className="text-sm font-black text-indigo-900 dark:text-indigo-100">{t.globalMonitoring}</p>
+                        <p className="text-[10px] text-indigo-700 dark:text-indigo-400">{t.globalMonitoringDescription}</p>
                       </div>
                       <button 
                         onClick={() => setAutoMonitoring(!autoMonitoring)}
-                        className={`w-12 h-6 rounded-full transition-all relative ${autoMonitoring ? 'bg-indigo-600' : 'bg-slate-300'}`}
+                        className={`w-12 h-6 rounded-full transition-all relative ${autoMonitoring ? 'bg-indigo-600 dark:bg-indigo-500' : 'bg-slate-300 dark:bg-slate-700'}`}
                       >
                         <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${autoMonitoring ? 'left-7' : 'left-1'}`} />
                       </button>
@@ -3551,23 +4058,23 @@ export default function App() {
                   </div>
 
                   <div className="space-y-3">
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{t.individualListeningConfig}</p>
+                    <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">{t.individualListeningConfig}</p>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       {Object.entries(monitoredApps).map(([app, enabled]) => (
                         <div 
                           key={app}
                           className={`p-4 rounded-2xl border transition-all flex items-center justify-between ${
                             !autoMonitoring ? 'opacity-40 grayscale pointer-events-none' : 
-                            enabled ? 'bg-white border-indigo-200 shadow-sm' : 'bg-slate-50 border-slate-100'
+                            enabled ? 'bg-white dark:bg-slate-800 border-indigo-200 dark:border-indigo-900/50 shadow-sm' : 'bg-slate-50 dark:bg-slate-800/30 border-slate-100 dark:border-slate-800'
                           }`}
                         >
                           <div className="flex flex-col">
-                            <span className={`text-xs font-black capitalize ${enabled ? 'text-slate-800' : 'text-slate-400'}`}>{app}</span>
-                            <span className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter">{t.autoListening}</span>
+                            <span className={`text-xs font-black capitalize ${enabled ? 'text-slate-800 dark:text-slate-200' : 'text-slate-400 dark:text-slate-500'}`}>{app}</span>
+                            <span className="text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-tighter">{t.autoListening}</span>
                           </div>
                           <button 
                             onClick={() => setMonitoredApps(prev => ({ ...prev, [app]: !enabled }))}
-                            className={`w-10 h-5 rounded-full transition-all relative ${enabled ? 'bg-emerald-500' : 'bg-slate-300'}`}
+                            className={`w-10 h-5 rounded-full transition-all relative ${enabled ? 'bg-emerald-500 dark:bg-emerald-600' : 'bg-slate-300 dark:bg-slate-700'}`}
                           >
                             <div className={`absolute top-0.5 w-4 h-4 bg-white rounded-full transition-all ${enabled ? 'left-5.5' : 'left-0.5'}`} />
                           </button>
@@ -3577,22 +4084,22 @@ export default function App() {
                   </div>
 
                   <div className="space-y-3">
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{t.responseMode}</p>
+                    <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">{t.responseMode}</p>
                     <div className="grid grid-cols-2 gap-3">
                       <button 
                         onClick={() => setActionType('MANUAL')}
-                        className={`py-3 rounded-xl text-xs font-bold border transition-all ${actionType === 'MANUAL' ? 'bg-slate-900 text-white border-slate-900' : 'bg-white text-slate-500 border-slate-200'}`}
+                        className={`py-3 rounded-xl text-xs font-bold border transition-all ${actionType === 'MANUAL' ? 'bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 border-slate-900 dark:border-slate-100' : 'bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700'}`}
                       >
                         {t.manual}
                       </button>
                       <button 
                         onClick={() => setActionType('AUTOMATIC')}
-                        className={`py-3 rounded-xl text-xs font-bold border transition-all ${actionType === 'AUTOMATIC' ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white text-slate-500 border-slate-200'}`}
+                        className={`py-3 rounded-xl text-xs font-bold border transition-all ${actionType === 'AUTOMATIC' ? 'bg-indigo-600 dark:bg-indigo-500 text-white dark:text-white border-indigo-600 dark:border-indigo-500' : 'bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700'}`}
                       >
                         {t.automatic}
                       </button>
                     </div>
-                    <p className="text-[10px] text-slate-400 italic">
+                    <p className="text-[10px] text-slate-400 dark:text-slate-500 italic">
                       {actionType === 'AUTOMATIC' 
                         ? t.autoDescription 
                         : t.manualDescription}
@@ -3602,7 +4109,7 @@ export default function App() {
                   {autoMonitoring && (
                     <button 
                       onClick={simulateScamNotification}
-                      className="w-full py-4 bg-amber-100 text-amber-700 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-amber-200 transition-all flex items-center justify-center gap-2"
+                      className="w-full py-4 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-amber-200 dark:hover:bg-amber-900/50 transition-all flex items-center justify-center gap-2"
                     >
                       <Zap className="w-4 h-4" /> {t.simulateNotification}
                     </button>
@@ -3612,26 +4119,26 @@ export default function App() {
 
               {/* Activity Log */}
               {scamLogs.length > 0 && (
-                <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-200 space-y-6">
+                <div className="bg-white dark:bg-slate-900 rounded-3xl p-8 shadow-sm border border-slate-200 dark:border-slate-800 space-y-6">
                   <div className="flex items-center justify-between">
-                    <h2 className="text-xl font-black flex items-center gap-2">
-                      <History className="w-6 h-6 text-slate-400" /> {t.activityLog}
+                    <h2 className="text-xl font-black flex items-center gap-2 text-slate-900 dark:text-slate-100">
+                      <History className="w-6 h-6 text-slate-400 dark:text-slate-500" /> {t.activityLog}
                     </h2>
-                    <button onClick={() => setScamLogs([])} className="text-[10px] font-bold text-slate-400 hover:text-rose-600 uppercase tracking-widest">{t.clear}</button>
+                    <button onClick={() => setScamLogs([])} className="text-[10px] font-bold text-slate-400 dark:text-slate-500 hover:text-rose-600 dark:hover:text-rose-400 uppercase tracking-widest">{t.clear}</button>
                   </div>
                   <div className="space-y-4">
                     {scamLogs.map(log => (
-                      <div key={log.id} className="p-4 bg-slate-50 rounded-2xl border border-slate-100 flex items-start gap-4">
-                        <div className={`p-2 rounded-xl shrink-0 ${log.action.includes('BLOQUEADO') ? 'bg-emerald-100 text-emerald-600' : 'bg-slate-200 text-slate-500'}`}>
+                      <div key={log.id} className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-800 flex items-start gap-4">
+                        <div className={`p-2 rounded-xl shrink-0 ${log.action.includes('BLOQUEADO') ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400' : 'bg-slate-200 dark:bg-slate-700 text-slate-500 dark:text-slate-400'}`}>
                           <ShieldAlert className="w-4 h-4" />
                         </div>
                         <div className="space-y-1">
                           <div className="flex items-center gap-2">
-                            <span className="text-[10px] font-black bg-white px-2 py-0.5 rounded border border-slate-200 uppercase tracking-wider">{log.app}</span>
-                            <span className="text-[10px] font-bold text-slate-400">{new Date(log.timestamp).toLocaleTimeString()}</span>
+                            <span className="text-[10px] font-black bg-white dark:bg-slate-800 px-2 py-0.5 rounded border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 uppercase tracking-wider">{log.app}</span>
+                            <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500">{new Date(log.timestamp).toLocaleTimeString()}</span>
                           </div>
-                          <p className="text-xs font-bold text-slate-800 leading-relaxed">{log.message}</p>
-                          <p className={`text-[10px] font-black uppercase tracking-widest ${log.action.includes('BLOQUEADO') ? 'text-indigo-600' : log.action.includes('PELO USUÁRIO') ? 'text-emerald-600' : 'text-slate-400'}`}>
+                          <p className="text-xs font-bold text-slate-800 dark:text-slate-200 leading-relaxed">{log.message}</p>
+                          <p className={`text-[10px] font-black uppercase tracking-widest ${log.action.includes('BLOQUEADO') ? 'text-indigo-600 dark:text-indigo-400' : log.action.includes('PELO USUÁRIO') ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400 dark:text-slate-500'}`}>
                             {log.action === "BLOQUEADO AUTOMATICAMENTE" ? t.blockedAuto : 
                              log.action === "BLOQUEADO PELO USUÁRIO" ? t.blockedUser : 
                              log.action === "IGNORADO PELO USUÁRIO" ? t.ignoredUser : log.action}
@@ -3644,10 +4151,10 @@ export default function App() {
               )}
 
               {/* Manual Analysis Section */}
-              <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-200">
-                <h2 className="text-xl font-black mb-6">{t.manualAnalysis}</h2>
+              <div className="bg-white dark:bg-slate-900 rounded-3xl p-8 shadow-sm border border-slate-200 dark:border-slate-800">
+                <h2 className="text-xl font-black mb-6 text-slate-900 dark:text-slate-100">{t.manualAnalysis}</h2>
                 <textarea
-                  className="w-full h-48 p-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all resize-none"
+                  className="w-full h-48 p-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-2xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all resize-none text-slate-800 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-500"
                   placeholder={t.placeholderScam}
                   value={inputText}
                   onChange={(e) => setInputText(e.target.value)}
@@ -3655,16 +4162,17 @@ export default function App() {
                 <button
                   onClick={analyzeMessage}
                   disabled={isAnalyzing || !inputText.trim()}
-                  className="w-full mt-4 py-4 bg-indigo-600 text-white rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-indigo-700 transition-all disabled:opacity-50"
+                  title={t.checkSecurity}
+                  className="w-full mt-4 py-4 bg-indigo-600 dark:bg-indigo-500 text-white rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-indigo-700 dark:hover:bg-indigo-600 transition-all disabled:opacity-50"
                 >
                   {isAnalyzing ? t.analyzing : t.checkSecurity}
                 </button>
               </div>
               {result && (
                 <div className={`p-8 rounded-3xl border-2 ${
-                  result.verdict === 'SEGURO' ? 'bg-emerald-50 border-emerald-200 text-emerald-700' :
-                  result.verdict === 'SUSPEITO' ? 'bg-amber-50 border-amber-200 text-amber-700' :
-                  'bg-rose-50 border-rose-200 text-rose-700'
+                  result.verdict === 'SEGURO' ? 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-900/30 text-emerald-700 dark:text-emerald-400' :
+                  result.verdict === 'SUSPEITO' ? 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-900/30 text-amber-700 dark:text-amber-400' :
+                  'bg-rose-50 dark:bg-rose-900/20 border-rose-200 dark:border-rose-900/30 text-rose-700 dark:text-rose-400'
                 }`}>
                   <h3 className="text-3xl font-black mb-2">
                     {result.verdict === 'SEGURO' ? t.safe : result.verdict === 'SUSPEITO' ? t.suspicious : t.scamConfirmed}
@@ -3681,11 +4189,11 @@ export default function App() {
             <motion.div key="emergency" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="max-w-2xl mx-auto space-y-8">
               <div className="flex items-center justify-between">
                 <div>
-                  <h2 className="text-2xl font-black text-slate-900">{t.emergency}</h2>
-                  <p className="text-xs text-slate-500 font-medium">{t.emergencySubtitle}</p>
+                  <h2 className="text-2xl font-black text-slate-900 dark:text-slate-100">{t.emergency}</h2>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">{t.emergencySubtitle}</p>
                 </div>
-                <div className="bg-rose-100 p-3 rounded-2xl">
-                  <ShieldAlert className="w-6 h-6 text-rose-600" />
+                <div className="bg-rose-100 dark:bg-rose-900/30 p-3 rounded-2xl">
+                  <ShieldAlert className="w-6 h-6 text-rose-600 dark:text-rose-400" />
                 </div>
               </div>
 
@@ -3693,41 +4201,41 @@ export default function App() {
               <div className="grid grid-cols-2 gap-4">
                 <button 
                   onClick={() => callEmergencyService('190')}
-                  className="p-6 bg-white border-2 border-rose-100 rounded-3xl text-left hover:border-rose-500 transition-all group"
+                  className="p-6 bg-white dark:bg-slate-900 border-2 border-rose-100 dark:border-rose-900/30 rounded-3xl text-left hover:border-rose-500 dark:hover:border-rose-500 transition-all group"
                 >
-                  <div className="w-12 h-12 bg-rose-100 rounded-2xl flex items-center justify-center mb-4 group-hover:bg-rose-600 group-hover:text-white transition-colors">
+                  <div className="w-12 h-12 bg-rose-100 dark:bg-rose-900/30 rounded-2xl flex items-center justify-center mb-4 group-hover:bg-rose-600 dark:group-hover:bg-rose-600 group-hover:text-white transition-colors">
                     <ShieldAlert className="w-6 h-6" />
                   </div>
-                  <p className="text-lg font-black text-slate-800">{t.police190}</p>
-                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{t.directActivation}</p>
+                  <p className="text-lg font-black text-slate-800 dark:text-slate-100">{t.police190}</p>
+                  <p className="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-widest">{t.directActivation}</p>
                 </button>
                 <button 
                   onClick={() => callEmergencyService('192')}
-                  className="p-6 bg-white border-2 border-rose-100 rounded-3xl text-left hover:border-rose-500 transition-all group"
+                  className="p-6 bg-white dark:bg-slate-900 border-2 border-rose-100 dark:border-rose-900/30 rounded-3xl text-left hover:border-rose-500 dark:hover:border-rose-500 transition-all group"
                 >
-                  <div className="w-12 h-12 bg-rose-100 rounded-2xl flex items-center justify-center mb-4 group-hover:bg-rose-600 group-hover:text-white transition-colors">
+                  <div className="w-12 h-12 bg-rose-100 dark:bg-rose-900/30 rounded-2xl flex items-center justify-center mb-4 group-hover:bg-rose-600 dark:group-hover:bg-rose-600 group-hover:text-white transition-colors">
                     <Activity className="w-6 h-6" />
                   </div>
-                  <p className="text-lg font-black text-slate-800">{t.samu192}</p>
-                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{t.medicalEmergency}</p>
+                  <p className="text-lg font-black text-slate-800 dark:text-slate-100">{t.samu192}</p>
+                  <p className="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-widest">{t.medicalEmergency}</p>
                 </button>
               </div>
 
               {/* Real-time Audio Listening */}
-              <div className="p-6 bg-slate-900 rounded-3xl text-white space-y-4 border border-slate-800 shadow-xl">
+              <div className="p-6 bg-slate-900 dark:bg-slate-950 rounded-3xl text-white space-y-4 border border-slate-800 dark:border-slate-900 shadow-xl">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className={`p-2 rounded-xl ${isListeningAudio ? 'bg-rose-500 animate-pulse' : 'bg-slate-800'}`}>
+                    <div className={`p-2 rounded-xl ${isListeningAudio ? 'bg-rose-500 animate-pulse' : 'bg-slate-800 dark:bg-slate-900'}`}>
                       <Mic className="w-5 h-5 text-white" />
                     </div>
                     <div>
                       <p className="text-sm font-black">{t.realTimeListening}</p>
-                      <p className="text-[10px] text-slate-400">{t.listeningDescription}</p>
+                      <p className="text-[10px] text-slate-400 dark:text-slate-500">{t.listeningDescription}</p>
                     </div>
                   </div>
                   <button 
                     onClick={() => setIsListeningAudio(!isListeningAudio)}
-                    className={`w-12 h-6 rounded-full transition-all relative ${isListeningAudio ? 'bg-rose-500' : 'bg-slate-700'}`}
+                    className={`w-12 h-6 rounded-full transition-all relative ${isListeningAudio ? 'bg-rose-500' : 'bg-slate-700 dark:bg-slate-800'}`}
                   >
                     <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${isListeningAudio ? 'left-7' : 'left-1'}`} />
                   </button>
@@ -3741,49 +4249,49 @@ export default function App() {
               </div>
 
               {/* Contact Access & Location Permission */}
-              <div className="p-6 bg-white rounded-3xl border border-slate-200 shadow-sm space-y-6">
+              <div className="p-6 bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-6">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className={`p-2 rounded-xl ${contactAccessPermission ? 'bg-indigo-100' : 'bg-slate-100'}`}>
-                      <Users className="w-5 h-5 text-indigo-600" />
+                    <div className={`p-2 rounded-xl ${contactAccessPermission ? 'bg-indigo-100 dark:bg-indigo-900/30' : 'bg-slate-100 dark:bg-slate-800'}`}>
+                      <Users className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
                     </div>
                     <div>
-                      <p className="text-sm font-black text-slate-800">{t.contactAccess}</p>
-                      <p className="text-[10px] text-slate-500">{t.contactAccessDescription}</p>
+                      <p className="text-sm font-black text-slate-800 dark:text-slate-100">{t.contactAccess}</p>
+                      <p className="text-[10px] text-slate-500 dark:text-slate-400">{t.contactAccessDescription}</p>
                     </div>
                   </div>
                   <button 
                     onClick={() => setContactAccessPermission(!contactAccessPermission)}
-                    className={`w-12 h-6 rounded-full transition-all relative ${contactAccessPermission ? 'bg-indigo-600' : 'bg-slate-200'}`}
+                    className={`w-12 h-6 rounded-full transition-all relative ${contactAccessPermission ? 'bg-indigo-600 dark:bg-indigo-500' : 'bg-slate-200 dark:bg-slate-700'}`}
                   >
                     <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${contactAccessPermission ? 'left-7' : 'left-1'}`} />
                   </button>
                 </div>
 
-                <div className="h-px bg-slate-100" />
+                <div className="h-px bg-slate-100 dark:bg-slate-800" />
 
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className={`p-2 rounded-xl ${allowContactLocation ? 'bg-indigo-100' : 'bg-slate-100'}`}>
-                      <MapPin className="w-5 h-5 text-indigo-600" />
+                    <div className={`p-2 rounded-xl ${allowContactLocation ? 'bg-indigo-100 dark:bg-indigo-900/30' : 'bg-slate-100 dark:bg-slate-800'}`}>
+                      <MapPin className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
                     </div>
                     <div>
-                      <p className="text-sm font-black text-slate-800">{t.allowContactLocation}</p>
-                      <p className="text-[10px] text-slate-500">{t.contactLocationDescription}</p>
+                      <p className="text-sm font-black text-slate-800 dark:text-slate-100">{t.allowContactLocation}</p>
+                      <p className="text-[10px] text-slate-500 dark:text-slate-400">{t.contactLocationDescription}</p>
                     </div>
                   </div>
                   <button 
                     onClick={() => setAllowContactLocation(!allowContactLocation)}
-                    className={`w-12 h-6 rounded-full transition-all relative ${allowContactLocation ? 'bg-indigo-600' : 'bg-slate-200'}`}
+                    className={`w-12 h-6 rounded-full transition-all relative ${allowContactLocation ? 'bg-indigo-600 dark:bg-indigo-500' : 'bg-slate-200 dark:bg-slate-700'}`}
                   >
                     <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${allowContactLocation ? 'left-7' : 'left-1'}`} />
                   </button>
                 </div>
                 
                 {(allowContactLocation && contactAccessPermission) && (
-                  <div className="flex items-center gap-2 bg-indigo-50 p-3 rounded-xl border border-indigo-100">
+                  <div className="flex items-center gap-2 bg-indigo-50 dark:bg-indigo-900/20 p-3 rounded-xl border border-indigo-100 dark:border-indigo-900/30">
                     <div className="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-pulse" />
-                    <span className="text-[10px] font-bold text-indigo-600 uppercase tracking-widest">{t.contactLocationActive}</span>
+                    <span className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-widest">{t.contactLocationActive}</span>
                   </div>
                 )}
               </div>
@@ -3791,32 +4299,32 @@ export default function App() {
               {/* Safe Contacts Management */}
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">{t.safeContacts}</h3>
-                  <Users className="w-4 h-4 text-slate-400" />
+                  <h3 className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em]">{t.safeContacts}</h3>
+                  <Users className="w-4 h-4 text-slate-400 dark:text-slate-500" />
                 </div>
                 
                 <div className="grid grid-cols-1 gap-3">
                   {safeContacts.map(contact => (
-                    <div key={contact.id} className="p-4 bg-white border border-slate-100 rounded-2xl flex items-center justify-between shadow-sm">
+                    <div key={contact.id} className="p-4 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-2xl flex items-center justify-between shadow-sm">
                       <div className="flex items-center gap-3">
-                        <div className={`w-10 h-10 rounded-full flex items-center justify-center font-black text-xs ${contact.active ? 'bg-indigo-100 text-indigo-600' : 'bg-slate-100 text-slate-400'}`}>
+                        <div className={`w-10 h-10 rounded-full flex items-center justify-center font-black text-xs ${contact.active ? 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400' : 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500'}`}>
                           {contact.name.charAt(0)}
                         </div>
                         <div>
-                          <p className="text-xs font-black text-slate-800">{contact.name}</p>
-                          <p className="text-[10px] text-slate-400 font-medium">{contact.phone}</p>
+                          <p className="text-xs font-black text-slate-800 dark:text-slate-100">{contact.name}</p>
+                          <p className="text-[10px] text-slate-400 dark:text-slate-500 font-medium">{contact.phone}</p>
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
                         <button 
                           onClick={() => toggleContact(contact.id)}
-                          className={`p-2 rounded-xl transition-all ${contact.active ? 'text-emerald-600 bg-emerald-50' : 'text-slate-300 bg-slate-50'}`}
+                          className={`p-2 rounded-xl transition-all ${contact.active ? 'text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/30' : 'text-slate-300 dark:text-slate-600 bg-slate-50 dark:bg-slate-800'}`}
                         >
                           <CheckCircle2 className="w-4 h-4" />
                         </button>
                         <button 
                           onClick={() => removeContact(contact.id)}
-                          className="p-2 text-slate-300 hover:text-rose-600 transition-all"
+                          className="p-2 text-slate-300 dark:text-slate-600 hover:text-rose-600 dark:hover:text-rose-400 transition-all"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -3826,63 +4334,66 @@ export default function App() {
                 </div>
 
                 {/* Add New Contact Form */}
-                <div className="p-5 bg-slate-50 rounded-3xl border border-slate-100 space-y-3">
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{t.addNewContact}</p>
+                <div className="p-5 bg-slate-50 dark:bg-slate-800/50 rounded-3xl border border-slate-100 dark:border-slate-800 space-y-3">
+                  <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">{t.addNewContact}</p>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     <input 
                       type="text" 
                       placeholder={t.name} 
-                      className="bg-white border border-slate-200 rounded-xl px-4 py-2 text-xs font-medium focus:ring-2 focus:ring-indigo-500"
+                      className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2 text-xs font-medium focus:ring-2 focus:ring-indigo-500 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500"
                       value={newContactName}
                       onChange={(e) => setNewContactName(e.target.value)}
                     />
                     <input 
                       type="text" 
                       placeholder={t.phone} 
-                      className="bg-white border border-slate-200 rounded-xl px-4 py-2 text-xs font-medium focus:ring-2 focus:ring-indigo-500"
+                      className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2 text-xs font-medium focus:ring-2 focus:ring-indigo-500 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500"
                       value={newContactPhone}
                       onChange={(e) => setNewContactPhone(e.target.value)}
                     />
                   </div>
                   <button 
                     onClick={addSafeContact}
-                    className="w-full py-3 bg-slate-900 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-indigo-600 transition-all"
+                    className="w-full py-3 bg-slate-900 dark:bg-slate-700 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-indigo-600 dark:hover:bg-indigo-500 transition-all"
                   >
                     {t.saveContact}
                   </button>
                 </div>
               </div>
 
-              {/* Audio Analysis Section */}
-              <div className="bg-white p-8 rounded-3xl border border-slate-200 shadow-sm space-y-4">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-rose-100 rounded-xl">
-                    <Mic className="w-5 h-5 text-rose-600" />
+                <ProGuard>
+                  <div className="bg-white dark:bg-slate-900 p-8 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-rose-100 dark:bg-rose-900/30 rounded-xl">
+                        <Mic className="w-5 h-5 text-rose-600 dark:text-rose-400" />
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-black text-slate-800 dark:text-slate-200">{t.aiAudioAnalysis}</h3>
+                        <p className="text-[10px] text-slate-500 dark:text-slate-400">{t.audioDescription}</p>
+                      </div>
+                    </div>
+                    <input type="file" accept="audio/*" onChange={(e) => setAudioFile(e.target.files?.[0] || null)} className="w-full text-xs text-slate-500 dark:text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-rose-50 dark:file:bg-rose-900/30 file:text-rose-700 dark:file:text-rose-400 hover:file:bg-rose-100 dark:hover:file:bg-rose-900/50" />
+                    <button 
+                      onClick={analyzeAudio}
+                      disabled={isAnalyzingAudio || !audioFile}
+                      title={t.sendForAnalysis}
+                      className="w-full mt-4 py-4 bg-rose-600 dark:bg-rose-500 text-white rounded-2xl font-black text-sm shadow-lg shadow-rose-200 dark:shadow-none hover:bg-rose-700 dark:hover:bg-rose-600 transition-all disabled:opacity-50"
+                    >
+                      {isAnalyzingAudio ? t.analyzing : t.sendForAnalysis}
+                    </button>
                   </div>
-                  <div>
-                    <h3 className="text-sm font-black text-slate-800">{t.aiAudioAnalysis}</h3>
-                    <p className="text-[10px] text-slate-500">{t.audioDescription}</p>
-                  </div>
-                </div>
-                <input type="file" accept="audio/*" onChange={(e) => setAudioFile(e.target.files?.[0] || null)} className="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-rose-50 file:text-rose-700 hover:file:bg-rose-100" />
-                <button 
-                  onClick={analyzeAudio}
-                  disabled={isAnalyzingAudio || !audioFile}
-                  className="w-full py-4 bg-rose-600 text-white rounded-2xl font-black text-sm shadow-lg shadow-rose-200 hover:bg-rose-700 transition-all disabled:opacity-50"
-                >
-                  {isAnalyzingAudio ? t.analyzing : t.sendForAnalysis}
-                </button>
-              </div>
+                </ProGuard>
 
               <div className="space-y-4">
                 <button 
                   onClick={triggerPanic}
-                  className="w-full py-6 bg-rose-600 text-white rounded-3xl font-black text-lg shadow-2xl shadow-rose-200 hover:bg-rose-700 transition-all transform active:scale-95 flex items-center justify-center gap-4"
+                  title={t.panicButton}
+                  className="w-full py-6 bg-rose-600 dark:bg-rose-500 text-white rounded-3xl font-black text-lg shadow-2xl shadow-rose-200 dark:shadow-none hover:bg-rose-700 dark:hover:bg-rose-600 transition-all transform active:scale-95 flex items-center justify-center gap-4"
                 >
                   <Zap className="w-6 h-6 animate-pulse" />
                   {t.panicButton}
                 </button>
-                <p className="text-center text-[10px] text-slate-400 font-bold uppercase tracking-widest">{t.panicDescription}</p>
+                <p className="text-center text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-widest">{t.panicDescription}</p>
               </div>
             </motion.div>
           )}
@@ -3891,18 +4402,84 @@ export default function App() {
             <motion.div key="settings" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="max-w-2xl mx-auto space-y-8">
               <div className="flex items-center justify-between">
                 <div>
-                  <h2 className="text-2xl font-black text-slate-900">{t.settings}</h2>
+                  <h2 className="text-2xl font-black text-slate-900 dark:text-slate-100">{t.settings}</h2>
                   <p className="text-xs text-slate-500 font-medium">{t.settingsDescription}</p>
                 </div>
-                <div className="bg-indigo-100 p-3 rounded-2xl">
-                  <User className="w-6 h-6 text-indigo-600" />
+                <div className="bg-indigo-100 dark:bg-indigo-900/30 p-3 rounded-2xl">
+                  <User className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
                 </div>
               </div>
 
+              {/* Plan Management */}
+              <div className="bg-white dark:bg-slate-900 rounded-3xl p-8 shadow-sm border border-slate-200 dark:border-slate-800 space-y-6 overflow-hidden relative">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/5 rounded-full -mr-16 -mt-16" />
+                <h3 className="text-sm font-black text-slate-800 dark:text-slate-200 flex items-center gap-2 relative z-10">
+                  <Star className={`w-4 h-4 ${userProfile?.plan === 'pro' ? 'text-amber-500 fill-current' : 'text-slate-400'}`} /> {t.currentPlan}
+                </h3>
+                
+                <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 relative z-10">
+                  <div>
+                    <p className={`text-lg font-black ${userProfile?.plan === 'pro' ? 'text-amber-600 dark:text-amber-500' : 'text-slate-600 dark:text-slate-400'}`}>
+                      {userProfile?.plan === 'pro' ? t.proPlan : t.freePlan}
+                    </p>
+                    <p className="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-widest">{t.currentPlan}</p>
+                  </div>
+                  {userProfile?.plan === 'free' && (
+                    <button 
+                      onClick={() => setShowCheckout(true)}
+                      className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg shadow-amber-200 dark:shadow-none"
+                    >
+                      {t.upgradeToPro}
+                    </button>
+                  )}
+                </div>
+
+                {userProfile?.plan === 'pro' && (
+                  <div className="space-y-4 pt-2 relative z-10">
+                    <h4 className="text-xs font-black text-slate-800 dark:text-slate-200 uppercase tracking-widest">{t.subscriptionDetails}</h4>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-800">
+                        <p className="text-[8px] font-bold text-slate-400 uppercase mb-1">{t.status}</p>
+                        <p className="text-xs font-black text-emerald-600 dark:text-emerald-400 uppercase">{t.active}</p>
+                      </div>
+                      <div className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-800">
+                        <p className="text-[8px] font-bold text-slate-400 uppercase mb-1">{t.periodicity}</p>
+                        <p className="text-xs font-black text-slate-700 dark:text-slate-200 uppercase">{userProfile.subscriptionPeriod === 'monthly' ? t.monthly : t.yearly}</p>
+                      </div>
+                      <div className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-800">
+                        <p className="text-[8px] font-bold text-slate-400 uppercase mb-1">{t.nextBilling}</p>
+                        <p className="text-xs font-black text-slate-700 dark:text-slate-200">{userProfile.nextBillingDate ? new Date(userProfile.nextBillingDate).toLocaleDateString() : '-'}</p>
+                      </div>
+                      <div className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-800">
+                        <p className="text-[8px] font-bold text-slate-400 uppercase mb-1">{t.paymentMethodLabel}</p>
+                        <p className="text-[10px] font-black text-slate-700 dark:text-slate-200 truncate">{userProfile.paymentMethod || '-'}</p>
+                      </div>
+                    </div>
+                    <button 
+                      onClick={cancelSubscription}
+                      className="w-full py-3 bg-slate-100 dark:bg-slate-800 text-rose-600 dark:text-rose-400 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-all border border-slate-200 dark:border-slate-700"
+                    >
+                      {t.cancelSubscription}
+                    </button>
+                  </div>
+                )}
+
+                {userProfile?.plan === 'free' && (
+                  <div className="space-y-4 pt-2 relative z-10">
+                    <p className="text-xs font-bold text-slate-700 dark:text-slate-300">{t.benefitsPro}</p>
+                    <div className="grid grid-cols-1 gap-2">
+                      {[t.benefit1, t.benefit2, t.benefit3, t.benefit4, t.benefit5].map((benefit, i) => (
+                        <p key={i} className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">{benefit}</p>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
               {/* Personal Data */}
-              <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-200 space-y-6">
-                <h3 className="text-sm font-black text-slate-800 flex items-center gap-2">
-                  <User className="w-4 h-4 text-indigo-600" /> {t.personalData}
+              <div className="bg-white dark:bg-slate-900 rounded-3xl p-8 shadow-sm border border-slate-200 dark:border-slate-800 space-y-6">
+                <h3 className="text-sm font-black text-slate-800 dark:text-slate-200 flex items-center gap-2">
+                  <User className="w-4 h-4 text-indigo-600 dark:text-indigo-400" /> {t.personalData}
                 </h3>
                 <div className="space-y-4">
                   <div className="space-y-1.5">
@@ -3911,7 +4488,7 @@ export default function App() {
                       type="text" 
                       value={personalData.name}
                       onChange={(e) => setPersonalData({...personalData, name: e.target.value})}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs font-medium focus:ring-2 focus:ring-indigo-500 transition-all"
+                      className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-xs font-medium focus:ring-2 focus:ring-indigo-500 transition-all dark:text-slate-100"
                     />
                   </div>
                   <div className="space-y-1.5">
@@ -3920,7 +4497,7 @@ export default function App() {
                       type="email" 
                       value={personalData.email}
                       disabled
-                      className="w-full bg-slate-100 border border-slate-200 rounded-xl px-4 py-3 text-xs font-medium text-slate-500 cursor-not-allowed"
+                      className="w-full bg-slate-100 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-xs font-medium text-slate-500 dark:text-slate-400 cursor-not-allowed"
                     />
                   </div>
                   <div className="space-y-1.5">
@@ -3930,12 +4507,12 @@ export default function App() {
                       value={personalData.phone}
                       onChange={(e) => setPersonalData({...personalData, phone: e.target.value})}
                       placeholder="(00) 00000-0000"
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs font-medium focus:ring-2 focus:ring-indigo-500 transition-all"
+                      className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-xs font-medium focus:ring-2 focus:ring-indigo-500 transition-all dark:text-slate-100"
                     />
                   </div>
                   <button 
                     onClick={saveSettings}
-                    className="w-full py-3 bg-indigo-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-indigo-700 transition-all"
+                    className="w-full py-3 bg-indigo-600 dark:bg-indigo-500 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-indigo-700 dark:hover:bg-indigo-600 transition-all"
                   >
                     {t.save}
                   </button>
@@ -3943,9 +4520,9 @@ export default function App() {
               </div>
 
               {/* Language Selection */}
-              <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-200 space-y-6">
-                <h3 className="text-sm font-black text-slate-800 flex items-center gap-2">
-                  <Navigation className="w-4 h-4 text-indigo-600" /> {t.language}
+              <div className="bg-white dark:bg-slate-900 rounded-3xl p-8 shadow-sm border border-slate-200 dark:border-slate-800 space-y-6">
+                <h3 className="text-sm font-black text-slate-800 dark:text-slate-200 flex items-center gap-2">
+                  <Navigation className="w-4 h-4 text-indigo-600 dark:text-indigo-400" /> {t.language}
                 </h3>
                 <div className="space-y-1.5">
                   <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{t.selectLanguage}</label>
@@ -3953,7 +4530,7 @@ export default function App() {
                     <select
                       value={language}
                       onChange={(e) => setLanguage(e.target.value as Language)}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs font-medium focus:ring-2 focus:ring-indigo-500 transition-all appearance-none cursor-pointer"
+                      className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-xs font-medium focus:ring-2 focus:ring-indigo-500 transition-all appearance-none cursor-pointer dark:text-slate-100"
                     >
                       <option value="pt">🇧🇷 Português</option>
                       <option value="en">🇺🇸 English</option>
@@ -3975,7 +4552,7 @@ export default function App() {
               {/* Logout */}
               <button 
                 onClick={() => signOut(auth)}
-                className="w-full py-4 bg-slate-900 text-white rounded-2xl font-black text-sm shadow-lg hover:bg-slate-800 transition-all flex items-center justify-center gap-2"
+                className="w-full py-4 bg-slate-900 dark:bg-slate-800 text-white rounded-2xl font-black text-sm shadow-lg hover:bg-slate-800 dark:hover:bg-slate-700 transition-all flex items-center justify-center gap-2"
               >
                 <LogOut className="w-5 h-5" /> {t.logout}
               </button>
@@ -3985,27 +4562,101 @@ export default function App() {
           {view === 'PAINEL' && isAdmin && (
             <motion.div key="painel" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-8">
               <div className="flex items-center justify-between">
-                <h2 className="text-2xl font-black">{t.controlPanel}</h2>
-                <span className="px-4 py-2 bg-rose-100 text-rose-600 rounded-full text-[10px] font-black uppercase tracking-widest animate-pulse">
+                <h2 className="text-2xl font-black text-slate-900 dark:text-slate-100">{t.controlPanel}</h2>
+                <span className="px-4 py-2 bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 rounded-full text-[10px] font-black uppercase tracking-widest animate-pulse">
                   Monitoramento Ativo
                 </span>
+              </div>
+
+              {/* User Management Section */}
+              <div className="bg-white dark:bg-slate-900 rounded-[40px] p-8 shadow-xl border border-slate-100 dark:border-slate-800">
+                <div className="flex items-center gap-4 mb-8">
+                  <div className="p-3 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-2xl">
+                    <User className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h2 className="text-2xl font-black text-slate-900 dark:text-slate-100">{t.userManagement}</h2>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest">{allUsers.length} Usuários Cadastrados</p>
+                  </div>
+                </div>
+
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left">
+                    <thead>
+                      <tr className="border-b border-slate-100 dark:border-slate-800">
+                        <th className="pb-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">{t.userEmail}</th>
+                        <th className="pb-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">{t.userPlan}</th>
+                        <th className="pb-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">{t.userRole}</th>
+                        <th className="pb-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Ações</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-50 dark:divide-slate-800/50">
+                      {allUsers.map((u) => (
+                        <tr key={u.uid} className="group">
+                          <td className="py-4">
+                            <p className="text-sm font-bold text-slate-700 dark:text-slate-200">{u.email}</p>
+                            <p className="text-[8px] text-slate-400 font-mono">{u.uid}</p>
+                          </td>
+                          <td className="py-4">
+                            <div className="flex items-center gap-2">
+                              <span className={`px-2 py-1 rounded-lg text-[8px] font-black uppercase ${u.plan === 'pro' ? 'bg-amber-100 text-amber-600' : 'bg-slate-100 text-slate-500'}`}>
+                                {u.plan}
+                              </span>
+                              {u.isVip && <span className="px-2 py-1 bg-indigo-100 text-indigo-600 rounded-lg text-[8px] font-black uppercase">{t.vipBadge}</span>}
+                            </div>
+                          </td>
+                          <td className="py-4">
+                            <span className={`px-2 py-1 rounded-lg text-[8px] font-black uppercase ${u.isAdmin ? 'bg-rose-100 text-rose-600' : 'bg-slate-100 text-slate-500'}`}>
+                              {u.isAdmin ? 'Admin' : 'User'}
+                            </span>
+                          </td>
+                          <td className="py-4 text-right">
+                            <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <button 
+                                onClick={() => updateUserPlanManual(u.uid, u.plan === 'pro' ? 'free' : 'pro')}
+                                className="p-2 bg-slate-50 dark:bg-slate-800 hover:bg-amber-50 dark:hover:bg-amber-900/20 text-slate-400 hover:text-amber-600 rounded-xl transition-all"
+                                title={u.plan === 'pro' ? t.setFree : t.setPro}
+                              >
+                                <Star className={`w-4 h-4 ${u.plan === 'pro' ? 'fill-current' : ''}`} />
+                              </button>
+                              <button 
+                                onClick={() => updateUserVip(u.uid, !u.isVip)}
+                                className="p-2 bg-slate-50 dark:bg-slate-800 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 text-slate-400 hover:text-indigo-600 rounded-xl transition-all"
+                                title={u.isVip ? t.removeVip : t.makeVip}
+                              >
+                                <ShieldCheck className={`w-4 h-4 ${u.isVip ? 'fill-current' : ''}`} />
+                              </button>
+                              <button 
+                                onClick={() => updateUserRole(u.uid, !u.isAdmin)}
+                                className="p-2 bg-slate-50 dark:bg-slate-800 hover:bg-rose-50 dark:hover:bg-rose-900/20 text-slate-400 hover:text-rose-600 rounded-xl transition-all"
+                                title={u.isAdmin ? t.removeAdmin : t.makeAdmin}
+                              >
+                                <Activity className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
               
               <div className="grid grid-cols-1 gap-6">
                 {alertasList.length > 0 ? alertasList.map((alerta) => (
-                  <div key={alerta.id} className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4">
+                  <div key={alerta.id} className="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         <div className={`p-2 rounded-xl ${
-                          alerta.gravidade === 'Crítica' ? 'bg-rose-100 text-rose-600' : 
-                          alerta.gravidade === 'Alta' ? 'bg-amber-100 text-amber-600' : 
-                          'bg-indigo-100 text-indigo-600'
+                          alerta.gravidade === 'Crítica' ? 'bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400' : 
+                          alerta.gravidade === 'Alta' ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400' : 
+                          'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400'
                         }`}>
                           <ShieldAlert className="w-5 h-5" />
                         </div>
                         <div>
-                          <h3 className="text-sm font-black text-slate-900">{alerta.tipo}</h3>
-                          <p className="text-[10px] text-slate-400 font-bold uppercase">{new Date(alerta.timestamp).toLocaleString()}</p>
+                          <h3 className="text-sm font-black text-slate-900 dark:text-slate-100">{alerta.tipo}</h3>
+                          <p className="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase">{new Date(alerta.timestamp).toLocaleString()}</p>
                         </div>
                       </div>
                       <select 
@@ -4019,9 +4670,9 @@ export default function App() {
                           }
                         }}
                         className={`text-[10px] font-black uppercase px-3 py-1.5 rounded-lg border-2 transition-all ${
-                          alerta.status === 'Pendente' ? 'border-rose-200 text-rose-600 bg-rose-50' :
-                          alerta.status === 'Em Atendimento' ? 'border-amber-200 text-amber-600 bg-amber-50' :
-                          'border-emerald-200 text-emerald-600 bg-emerald-50'
+                          alerta.status === 'Pendente' ? 'border-rose-200 dark:border-rose-900/30 text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-900/20' :
+                          alerta.status === 'Em Atendimento' ? 'border-amber-200 dark:border-amber-900/30 text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20' :
+                          'border-emerald-200 dark:border-emerald-900/30 text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20'
                         }`}
                       >
                         <option value="Pendente">Pendente</option>
@@ -4031,45 +4682,45 @@ export default function App() {
                     </div>
 
                     <div className="space-y-3">
-                      <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                        <p className="text-xs text-slate-600 leading-relaxed italic">"{alerta.transcricao}"</p>
+                      <div className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-800">
+                        <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed italic">"{alerta.transcricao}"</p>
                       </div>
                       
                       {alerta.sons_fundo && (
                         <div className="flex items-start gap-2">
-                          <Mic className="w-4 h-4 text-slate-400 mt-0.5" />
-                          <p className="text-[10px] text-slate-500 font-medium">{alerta.sons_fundo}</p>
+                          <Mic className="w-4 h-4 text-slate-400 dark:text-slate-500 mt-0.5" />
+                          <p className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">{alerta.sons_fundo}</p>
                         </div>
                       )}
 
                       {alerta.analise_ia_audio && (
-                        <div className="p-4 bg-indigo-50 rounded-2xl border border-indigo-100 space-y-2">
+                        <div className="p-4 bg-indigo-50 dark:bg-indigo-900/20 rounded-2xl border border-indigo-100 dark:border-indigo-900/30 space-y-2">
                           <div className="flex items-center gap-2">
-                            <Zap className="w-3 h-3 text-indigo-600" />
-                            <span className="text-[10px] font-black text-indigo-600 uppercase tracking-widest">Análise IA</span>
+                            <Zap className="w-3 h-3 text-indigo-600 dark:text-indigo-400" />
+                            <span className="text-[10px] font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-widest">Análise IA</span>
                           </div>
-                          <p className="text-[10px] text-indigo-900 leading-relaxed">{alerta.analise_ia_audio}</p>
+                          <p className="text-[10px] text-indigo-900 dark:text-indigo-200 leading-relaxed">{alerta.analise_ia_audio}</p>
                         </div>
                       )}
                     </div>
 
-                    <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
+                    <div className="pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <User className="w-4 h-4 text-slate-400" />
-                        <span className="text-[10px] font-bold text-slate-500">{alerta.userEmail || 'Usuário Anônimo'}</span>
+                        <User className="w-4 h-4 text-slate-400 dark:text-slate-500" />
+                        <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400">{alerta.userEmail || 'Usuário Anônimo'}</span>
                       </div>
                       <button 
                         onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${alerta.uid}`, '_blank')}
-                        className="text-[10px] font-black text-indigo-600 uppercase flex items-center gap-1 hover:underline"
+                        className="text-[10px] font-black text-indigo-600 dark:text-indigo-400 uppercase flex items-center gap-1 hover:underline"
                       >
                         <MapPin className="w-3 h-3" /> Ver Localização
                       </button>
                     </div>
                   </div>
                 )) : (
-                  <div className="text-center py-20 bg-slate-50 rounded-[40px] border-2 border-dashed border-slate-200">
-                    <History className="w-12 h-12 text-slate-300 mx-auto mb-4" />
-                    <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">Nenhum alerta ativo no momento</p>
+                  <div className="text-center py-20 bg-slate-50 dark:bg-slate-900/50 rounded-[40px] border-2 border-dashed border-slate-200 dark:border-slate-800">
+                    <History className="w-12 h-12 text-slate-300 dark:text-slate-700 mx-auto mb-4" />
+                    <p className="text-sm font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Nenhum alerta ativo no momento</p>
                   </div>
                 )}
               </div>
@@ -4205,6 +4856,112 @@ export default function App() {
                   className="flex-1 bg-slate-800 hover:bg-slate-700 text-white font-bold py-4 rounded-2xl transition-colors uppercase tracking-widest text-xs"
                 >
                   {t.confirmNo}
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+      <AnimatePresence>
+        {showCheckout && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+            <motion.div 
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-white dark:bg-slate-900 w-full max-w-md rounded-[40px] p-8 shadow-2xl border border-slate-200 dark:border-slate-800"
+            >
+              <div className="flex justify-between items-start mb-6">
+                <div>
+                  <h3 className="text-2xl font-black text-slate-900 dark:text-slate-100">{t.checkoutTitle}</h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">{t.checkoutSubtitle}</p>
+                </div>
+                <button 
+                  onClick={() => setShowCheckout(false)}
+                  className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors"
+                >
+                  <XCircle className="w-6 h-6 text-slate-400" />
+                </button>
+              </div>
+
+              <div className="space-y-6">
+                {/* Plan Options */}
+                <div className="grid grid-cols-2 gap-3">
+                  <button 
+                    onClick={() => setSelectedPeriod('monthly')}
+                    className={`p-4 rounded-2xl border-2 transition-all text-left ${
+                      selectedPeriod === 'monthly' 
+                        ? 'border-indigo-600 bg-indigo-50 dark:bg-indigo-900/20' 
+                        : 'border-slate-100 dark:border-slate-800 hover:border-indigo-200'
+                    }`}
+                  >
+                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">{t.monthly}</p>
+                    <p className="text-lg font-black text-slate-900 dark:text-slate-100">{t.pricePro.split('/')[0]}</p>
+                  </button>
+                  <button 
+                    onClick={() => setSelectedPeriod('yearly')}
+                    className={`p-4 rounded-2xl border-2 transition-all text-left relative overflow-hidden ${
+                      selectedPeriod === 'yearly' 
+                        ? 'border-indigo-600 bg-indigo-50 dark:bg-indigo-900/20' 
+                        : 'border-slate-100 dark:border-slate-800 hover:border-indigo-200'
+                    }`}
+                  >
+                    <div className="absolute top-0 right-0 bg-amber-500 text-white text-[7px] font-black px-2 py-1 rounded-bl-lg uppercase">
+                      {t.saveYearly}
+                    </div>
+                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">{t.yearly}</p>
+                    <p className="text-lg font-black text-slate-900 dark:text-slate-100">{t.priceProYearly.split('/')[0]}</p>
+                  </button>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{t.cardNumber}</label>
+                    <div className="relative">
+                      <input 
+                        type="text" 
+                        placeholder="0000 0000 0000 0000"
+                        className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-xs font-medium focus:ring-2 focus:ring-indigo-500 transition-all dark:text-slate-100"
+                      />
+                      <Briefcase className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300" />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{t.expiryDate}</label>
+                      <input 
+                        type="text" 
+                        placeholder="MM/AA"
+                        className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-xs font-medium focus:ring-2 focus:ring-indigo-500 transition-all dark:text-slate-100"
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{t.cvv}</label>
+                      <input 
+                        type="text" 
+                        placeholder="000"
+                        className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-xs font-medium focus:ring-2 focus:ring-indigo-500 transition-all dark:text-slate-100"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <button 
+                  onClick={upgradeToPro}
+                  disabled={isProcessingPurchase}
+                  className="w-full py-4 bg-indigo-600 dark:bg-indigo-500 text-white rounded-2xl font-black text-sm shadow-xl shadow-indigo-200 dark:shadow-none hover:bg-indigo-700 dark:hover:bg-indigo-600 transition-all flex items-center justify-center gap-3 disabled:opacity-50"
+                >
+                  {isProcessingPurchase ? (
+                    <>
+                      <Clock className="w-5 h-5 animate-spin" />
+                      {t.processing}
+                    </>
+                  ) : (
+                    <>
+                      <ShieldCheck className="w-5 h-5" />
+                      {t.confirmPurchase}
+                    </>
+                  )}
                 </button>
               </div>
             </motion.div>

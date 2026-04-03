@@ -72,9 +72,52 @@
         "timestamp": { "type": "number" }
       },
       "required": ["titulo", "descricao", "uid"]
+    },
+    "User": {
+      "title": "Perfil do Usuário",
+      "description": "Informações do perfil do usuário, incluindo detalhes da assinatura.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string" },
+        "plan": { "type": "string", "enum": ["free", "pro"] },
+        "subscriptionStatus": { "type": "string", "enum": ["active", "inactive", "past_due"] },
+        "subscriptionPeriod": { "type": "string", "enum": ["monthly", "yearly"] },
+        "nextBillingDate": { "type": "number" },
+        "paymentMethod": { "type": "string" },
+        "isAdmin": { "type": "boolean" },
+        "isVip": { "type": "boolean" },
+        "timestamp": { "type": "number" }
+      },
+      "required": ["uid", "email", "plan"]
+    },
+    "ConfiguracoesUsuario": {
+      "title": "Configurações do Usuário",
+      "description": "Preferências de idioma e dados pessoais do usuário.",
+      "type": "object",
+      "properties": {
+        "language": { "type": "string" },
+        "personalData": {
+          "type": "object",
+          "properties": {
+            "name": { "type": "string" },
+            "email": { "type": "string" },
+            "phone": { "type": "string" }
+          }
+        },
+        "updatedAt": { "type": "number" }
+      }
     }
   },
   "firestore": {
+    "users/{uid}": {
+      "schema": "User",
+      "description": "Perfis dos usuários e configurações de conta."
+    },
+    "configuracoes_usuario/{uid}": {
+      "schema": "ConfiguracoesUsuario",
+      "description": "Preferências e dados pessoais do usuário."
+    },
     "alertas/{alertaId}": {
       "schema": "Alerta",
       "description": "Coleção de alertas de emergência."

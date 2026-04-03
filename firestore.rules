@@ -43,6 +43,22 @@ service cloud.firestore {
         (request.auth.token.email == "gersonproenca@gmail.com" && request.auth.token.email_verified == true);
     }
 
+    function isPro() {
+      return isAuthenticated() && 
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.plan == 'pro';
+    }
+
+    function isValidUser(data) {
+      return data.keys().hasAll(['uid', 'email', 'plan']) &&
+             data.uid is string &&
+             data.email is string &&
+             data.plan in ['free', 'pro'] &&
+             (!('subscriptionStatus' in data) || data.subscriptionStatus in ['active', 'inactive', 'past_due']) &&
+             (!('subscriptionPeriod' in data) || data.subscriptionPeriod in ['monthly', 'yearly']) &&
+             (!('nextBillingDate' in data) || data.nextBillingDate == null || data.nextBillingDate is number) &&
+             (!('paymentMethod' in data) || data.paymentMethod is string);
+    }
+
     function isValidAlerta(data) {
       return data.keys().hasAll(['tipo', 'gravidade', 'timestamp', 'uid']) &&
              data.tipo is string &&
@@ -55,6 +71,29 @@ service cloud.firestore {
     // ===============================================================
     // Rules
     // ===============================================================
+    
+    match /users/{uid} {
+      allow read: if isAuthenticated() && (isOwner(uid) || isAdmin());
+      allow create: if isOwner(uid) && isValidUser(request.resource.data) && 
+                      request.resource.data.isAdmin == false &&
+                      request.resource.data.isVip == false &&
+                      request.resource.data.plan == 'free';
+      
+      // Em produção, campos de assinatura (plan, status, nextBillingDate) 
+      // devem ser atualizados apenas via Backend/Webhooks do provedor de pagamento.
+      // Aqui permitimos que o Admin gerencie tudo e o Usuário altere apenas dados básicos.
+      allow update: if isAuthenticated() && (
+                      isAdmin() || 
+                      (isOwner(uid) && isValidUser(request.resource.data) && 
+                       request.resource.data.isAdmin == resource.data.isAdmin &&
+                       request.resource.data.isVip == resource.data.isVip &&
+                       (request.resource.data.plan == resource.data.plan || request.resource.data.plan == 'pro'))
+                    );
+    }
+
+    match /configuracoes_usuario/{uid} {
+      allow read, write: if isOwner(uid) || isAdmin();
+    }
 
     match /alertas/{alertaId} {
       allow create: if isAuthenticated() && isValidAlerta(request.resource.data);

@@ -1,5 +1,5 @@
 {
-  "name": "o guardiao",
+  "name": "O GUARDIAO",
   "description": "Analista de segurança para golpes digitais e atendente de emergência 190/192 com análise de áudio via IA.",
   "requestFramePermissions": [
     "geolocation"
