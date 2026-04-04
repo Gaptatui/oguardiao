@@ -25,7 +25,7 @@ async function startServer() {
     app.use(vite.middlewares);
   } else {
     console.log("Iniciando em modo de PRODUÇÃO...");
-    const distPath = path.join(process.cwd(), 'dist');
+    const distPath = path.join(__dirname, 'dist');
     
     // Serve arquivos estáticos
     app.use(express.static(distPath));

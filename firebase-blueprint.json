@@ -133,6 +133,23 @@
         "timestamp": { "type": "number" }
       },
       "required": ["modulo", "timestamp"]
+    },
+    "ContatoEmergencia": {
+      "title": "Contato de Emergência",
+      "description": "Contatos para notificação em caso de emergência.",
+      "type": "object",
+      "properties": {
+        "nome": { "type": "string" },
+        "parentesco": { "type": "string" },
+        "telefone": { "type": "string" },
+        "active": { "type": "boolean" },
+        "deleted": { "type": "boolean" },
+        "x": { "type": "number" },
+        "y": { "type": "number" },
+        "uid": { "type": "string" },
+        "timestamp": { "type": "number" }
+      },
+      "required": ["nome", "telefone", "uid"]
     }
   },
   "firestore": {
@@ -171,6 +188,10 @@
     "logs_uso/{logId}": {
       "schema": "UsoModulo",
       "description": "Logs de utilização para análise de métricas."
+    },
+    "contatos_emergencia/{contatoId}": {
+      "schema": "ContatoEmergencia",
+      "description": "Contatos de emergência do usuário."
     }
   }
 }

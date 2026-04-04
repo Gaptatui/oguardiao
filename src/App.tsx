@@ -12,7 +12,7 @@ import {
   Heart, Zap, Users, Navigation, QrCode, Pill, Briefcase,
   Search, Plus, CheckCircle2, XCircle, AlertCircle, ChevronRight,
   ExternalLink, Clapperboard, ShoppingBag, Theater, Beer, Utensils,
-  ShoppingBasket, Store, Menu, Star, Moon, Sun
+  ShoppingBasket, Store, Menu, Star, Moon, Sun, HelpCircle
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
@@ -117,14 +117,15 @@ interface Device {
 interface UserProfile {
   uid: string;
   email: string;
+  name?: string;
   plan: 'free' | 'pro';
+  isAdmin: boolean;
+  isVip?: boolean;
+  timestamp: number;
   subscriptionStatus?: 'active' | 'inactive' | 'past_due';
   subscriptionPeriod?: 'monthly' | 'yearly';
   nextBillingDate?: number;
   paymentMethod?: string;
-  isAdmin: boolean;
-  isVip?: boolean;
-  timestamp: number;
 }
 
 interface Transaction {
@@ -267,6 +268,32 @@ const translations = {
     returnToCar: "Rota de Retorno ao Carro",
     carNotMarked: "Nenhuma localização de carro marcada.",
     carLocationDescription: "Salve a localização atual para encontrar seu veículo depois.",
+    carReminder: "Lembrete de Retorno",
+    carReminderInterval: "Intervalo de Lembrete (min)",
+    carAutoDisable: "Desativar Automaticamente (min)",
+    carReminderActive: "Monitoramento de Estacionamento Ativo",
+    carReminderDisabled: "Monitoramento Desativado",
+    carReminderToast: "Lembrete: Seu carro está estacionado. Deseja retornar agora?",
+    carAutoDisabledToast: "Monitoramento de estacionamento encerrado automaticamente.",
+    fontSize: "Tamanho da Letra",
+    signLanguage: "Língua de Sinais",
+    emergencyContacts: "Contatos de Emergência",
+    addShortcut: "Adicionar Atalho",
+    shortcutSuggestion: "Deseja adicionar um atalho do O GUARDIAO à sua tela inicial para acesso rápido?",
+    permissionsGuide: "Guia de Permissões",
+    permissionsDescription: "Para sua total segurança, precisamos de acesso à localização, microfone e contatos.",
+    openSettings: "Abrir Configurações",
+    pixPayment: "Pagamento via Pix",
+    creditCard: "Cartão de Crédito",
+    planControl: "Controle de Planos",
+    monthlyValue: "Valor Mensal",
+    yearlyValue: "Valor Anual",
+    emergencyContactName: "Nome do Contato",
+    emergencyContactPhone: "Telefone",
+    emergencyContactRelation: "Parentesco",
+    deleteContact: "Excluir Contato",
+    later: "Mais tarde",
+    okUnderstood: "Ok, entendi",
     leisureCulture: "LAZER E CULTURA",
     findLeisure: "Encontrar Lazer",
     cinema: "Cinema",
@@ -344,6 +371,18 @@ const translations = {
     revenueOverTime: "Receita ao Longo do Tempo",
     usageLogs: "Logs de Uso",
     noData: "Sem dados para exibir.",
+    welcomeTitle: "Bem-vindo ao O GUARDIÃO",
+    welcomeSubtitle: "Sua segurança inteligente começa aqui.",
+    welcomeStep1Title: "🛡️ Proteção contra Golpes",
+    welcomeStep1Desc: "Cole mensagens suspeitas no módulo 'Escudo' para análise instantânea por IA.",
+    welcomeStep2Title: "🚨 Botão de Pânico",
+    welcomeStep2Desc: "Em emergências, o app grava áudio, analisa a situação e alerta contatos de confiança.",
+    welcomeStep3Title: "🗺️ Rota Segura",
+    welcomeStep3Desc: "Planeje caminhos evitando áreas de risco com base em dados em tempo real.",
+    welcomeStep4Title: "🏥 Saúde & Comunidade",
+    welcomeStep4Desc: "Encontre farmácias, hospitais e serviços locais rapidamente.",
+    getStarted: "Começar Agora",
+    tutorial: "Tutorial",
     pharmacyPrompt: "Quais são as 3 farmácias mais próximas de mim? Liste-as no formato 'Nome (Distância)'.",
     unitsPrompt: "Quais são as 5 unidades de saúde (UPAs, postos de saúde, hospitais, policlínicas) mais próximas de mim? Liste-as no formato 'Nome (Distância)'.",
     leisurePrompt: "Quais são os 3 {category} mais próximos de mim? Elenque-os no formato 'Nome (Distância) [Avaliação]'. A avaliação deve ser um número de 0 a 5.",
@@ -545,6 +584,32 @@ const translations = {
     returnToCar: "Return Route to Car",
     carNotMarked: "No car location marked.",
     carLocationDescription: "Save current location to find your vehicle later.",
+    carReminder: "Return Reminder",
+    carReminderInterval: "Reminder Interval (min)",
+    carAutoDisable: "Auto Disable (min)",
+    carReminderActive: "Parking Monitoring Active",
+    carReminderDisabled: "Monitoring Disabled",
+    carReminderToast: "Reminder: Your car is parked. Do you want to return now?",
+    carAutoDisabledToast: "Parking monitoring ended automatically.",
+    fontSize: "Font Size",
+    signLanguage: "Sign Language",
+    emergencyContacts: "Emergency Contacts",
+    addShortcut: "Add Shortcut",
+    shortcutSuggestion: "Would you like to add a shortcut for O GUARDIAO to your home screen for quick access?",
+    permissionsGuide: "Permissions Guide",
+    permissionsDescription: "For your full safety, we need access to location, microphone, and contacts.",
+    openSettings: "Open Settings",
+    pixPayment: "Pix Payment",
+    creditCard: "Credit Card",
+    planControl: "Plan Control",
+    monthlyValue: "Monthly Value",
+    yearlyValue: "Yearly Value",
+    emergencyContactName: "Contact Name",
+    emergencyContactPhone: "Phone",
+    emergencyContactRelation: "Relationship",
+    deleteContact: "Delete Contact",
+    later: "Later",
+    okUnderstood: "Ok, understood",
     leisureCulture: "LEISURE & CULTURE",
     findLeisure: "Find Leisure",
     cinema: "Cinema",
@@ -622,6 +687,18 @@ const translations = {
     revenueOverTime: "Revenue Over Time",
     usageLogs: "Usage Logs",
     noData: "No data to display.",
+    welcomeTitle: "Welcome to THE GUARDIAN",
+    welcomeSubtitle: "Your smart security starts here.",
+    welcomeStep1Title: "🛡️ Scam Protection",
+    welcomeStep1Desc: "Paste suspicious messages in the 'Shield' module for instant AI analysis.",
+    welcomeStep2Title: "🚨 Panic Button",
+    welcomeStep2Desc: "In emergencies, the app records audio, analyzes the situation, and alerts trusted contacts.",
+    welcomeStep3Title: "🗺️ Safe Route",
+    welcomeStep3Desc: "Plan paths avoiding risk areas based on real-time data.",
+    welcomeStep4Title: "🏥 Health & Community",
+    welcomeStep4Desc: "Find pharmacies, hospitals, and local services quickly.",
+    getStarted: "Get Started",
+    tutorial: "Tutorial",
     pharmacyPrompt: "What are the 3 nearest pharmacies to me? List them in the format 'Name (Distance)'.",
     unitsPrompt: "What are the 5 nearest health units (UPAs, health centers, hospitals, polyclinics) to me? List them in the format 'Name (Distance)'.",
     leisurePrompt: "What are the 3 nearest {category} to me? List them in the format 'Name (Distance) [Rating]'. The rating should be a number from 0 to 5.",
@@ -2243,6 +2320,77 @@ export default function App() {
   // Emergency State
   const [audioFile, setAudioFile] = useState<File | null>(null);
   const [isAnalyzingAudio, setIsAnalyzingAudio] = useState(false);
+  const [fontSizeMultiplier, setFontSizeMultiplier] = useState(() => {
+    const saved = localStorage.getItem('guardian-font-size');
+    return saved ? parseFloat(saved) : 1;
+  });
+  const [showSignLanguage, setShowSignLanguage] = useState(false);
+  const [emergencyContacts, setEmergencyContacts] = useState<any[]>([]);
+  const [showShortcutSuggestion, setShowShortcutSuggestion] = useState(false);
+  const [showPermissionGuide, setShowPermissionGuide] = useState(false);
+  const [os, setOs] = useState<'ios' | 'android' | 'other'>('other');
+  const [paymentMethod, setPaymentMethod] = useState<'card' | 'pix'>('card');
+  const [planConfig, setPlanConfig] = useState(() => {
+    const saved = localStorage.getItem('guardian-plan-config');
+    return saved ? JSON.parse(saved) : { monthly: 9.90, yearly: 99.00 };
+  });
+
+  useEffect(() => {
+    const ua = navigator.userAgent.toLowerCase();
+    if (/iphone|ipad|ipod/.test(ua)) setOs('ios');
+    else if (/android/.test(ua)) setOs('android');
+    else setOs('other');
+  }, []);
+
+  useEffect(() => {
+    if (user && isAuthReady) {
+      const firstLogin = !localStorage.getItem(`guardian-shortcut-seen-${user.uid}`);
+      if (firstLogin) {
+        setShowShortcutSuggestion(true);
+        setShowPermissionGuide(true);
+        localStorage.setItem(`guardian-shortcut-seen-${user.uid}`, 'true');
+      }
+    }
+  }, [user, isAuthReady]);
+
+  useEffect(() => {
+    if (showSignLanguage && language === 'pt') {
+      const scriptId = 'vlibras-script';
+      if (!document.getElementById(scriptId)) {
+        const script = document.createElement('script');
+        script.id = scriptId;
+        script.src = 'https://vlibras.gov.br/app/vlibras-plugin.js';
+        script.async = true;
+        script.onload = () => {
+          // @ts-ignore
+          if (window.VLibras) {
+            // @ts-ignore
+            new window.VLibras.Widget('https://vlibras.gov.br/app');
+          }
+        };
+        document.body.appendChild(script);
+      }
+    }
+  }, [showSignLanguage, language]);
+
+  useEffect(() => {
+    if (user) {
+      const q = query(collection(db, 'contatos_emergencia'), where('uid', '==', user.uid));
+      const unsub = onSnapshot(q, (snapshot) => {
+        setEmergencyContacts(snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
+      });
+      return unsub;
+    }
+  }, [user]);
+
+  useEffect(() => {
+    localStorage.setItem('guardian-font-size', fontSizeMultiplier.toString());
+    document.documentElement.style.fontSize = `${fontSizeMultiplier * 16}px`;
+  }, [fontSizeMultiplier]);
+
+  const [showWelcome, setShowWelcome] = useState(() => {
+    return !localStorage.getItem('guardian-welcome-seen');
+  });
   const [toast, setToast] = useState<{ message: string; type: 'info' | 'success' | 'error' } | null>(null);
   const [confirmDialog, setConfirmDialog] = useState<{ title: string; message: string; onConfirm: () => void; onCancel: () => void } | null>(null);
   const [allowContactLocation, setAllowContactLocation] = useState(false);
@@ -2259,6 +2407,12 @@ export default function App() {
     setToast({ message, type });
   };
 
+  const closeWelcome = () => {
+    console.log("Closing welcome modal");
+    setShowWelcome(false);
+    localStorage.setItem('guardian-welcome-seen', 'true');
+  };
+
   const saveCarLocation = () => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
@@ -2267,8 +2421,12 @@ export default function App() {
             lat: position.coords.latitude,
             lng: position.coords.longitude
           };
+          const now = Date.now();
           setCarLocation(newLoc);
+          setCarSaveTimestamp(now);
+          setCarReminderEnabled(true);
           localStorage.setItem('guardian-car-location', JSON.stringify(newLoc));
+          localStorage.setItem('guardian-car-timestamp', now.toString());
           showToast(t.carLocationSaved, "success");
         },
         (error) => {
@@ -2289,7 +2447,7 @@ export default function App() {
 
   const openCarRoute = () => {
     if (carLocation) {
-      const url = `https://www.google.com/maps/dir/?api=1&destination=${carLocation.lat},${carLocation.lng}&travelmode=walking`;
+      const url = `https://www.google.com/maps/search/?api=1&query=${carLocation.lat},${carLocation.lng}`;
       window.open(url, '_blank');
     } else {
       showToast(t.carNotMarked, "error");
@@ -2319,6 +2477,66 @@ export default function App() {
     const saved = localStorage.getItem('guardian-car-location');
     return saved ? JSON.parse(saved) : null;
   });
+  const [carReminderEnabled, setCarReminderEnabled] = useState(() => {
+    return localStorage.getItem('guardian-car-reminder-enabled') === 'true';
+  });
+  const [carReminderInterval, setCarReminderInterval] = useState(() => {
+    const saved = localStorage.getItem('guardian-car-reminder-interval');
+    return saved ? parseInt(saved) : 30;
+  });
+  const [carAutoDisableTime, setCarAutoDisableTime] = useState(() => {
+    const saved = localStorage.getItem('guardian-car-auto-disable');
+    return saved ? parseInt(saved) : 120;
+  });
+
+  useEffect(() => {
+    localStorage.setItem('guardian-car-reminder-enabled', carReminderEnabled.toString());
+    localStorage.setItem('guardian-car-reminder-interval', carReminderInterval.toString());
+    localStorage.setItem('guardian-car-auto-disable', carAutoDisableTime.toString());
+  }, [carReminderEnabled, carReminderInterval, carAutoDisableTime]);
+  const [carSaveTimestamp, setCarSaveTimestamp] = useState<number | null>(() => {
+    const saved = localStorage.getItem('guardian-car-timestamp');
+    return saved ? parseInt(saved) : null;
+  });
+
+  useEffect(() => {
+    let reminderInterval: NodeJS.Timeout | null = null;
+    let autoDisableTimeout: NodeJS.Timeout | null = null;
+
+    if (carLocation && carReminderEnabled && carSaveTimestamp) {
+      // Reminder every X minutes
+      reminderInterval = setInterval(() => {
+        showToast(t.carReminderToast, "info");
+      }, carReminderInterval * 60 * 1000);
+
+      // Auto disable after Y minutes
+      const timeSinceSave = Date.now() - carSaveTimestamp;
+      const remainingTime = (carAutoDisableTime * 60 * 1000) - timeSinceSave;
+
+      if (remainingTime > 0) {
+        autoDisableTimeout = setTimeout(() => {
+          setCarReminderEnabled(false);
+          setCarLocation(null);
+          setCarSaveTimestamp(null);
+          localStorage.removeItem('guardian-car-location');
+          localStorage.removeItem('guardian-car-timestamp');
+          showToast(t.carAutoDisabledToast, "info");
+        }, remainingTime);
+      } else {
+        // Already expired
+        setCarReminderEnabled(false);
+        setCarLocation(null);
+        setCarSaveTimestamp(null);
+        localStorage.removeItem('guardian-car-location');
+        localStorage.removeItem('guardian-car-timestamp');
+      }
+    }
+
+    return () => {
+      if (reminderInterval) clearInterval(reminderInterval);
+      if (autoDisableTimeout) clearTimeout(autoDisableTimeout);
+    };
+  }, [carLocation, carReminderEnabled, carReminderInterval, carAutoDisableTime, carSaveTimestamp, t]);
   const [isFetchingPharmacies, setIsFetchingPharmacies] = useState(false);
   const [healthUnitsList, setHealthUnitsList] = useState<any[]>([]);
   const [isFetchingUnits, setIsFetchingUnits] = useState(false);
@@ -2370,20 +2588,23 @@ export default function App() {
       const text = response.text || "";
       const chunks = response.candidates?.[0]?.groundingMetadata?.groundingChunks;
       if (chunks) {
-        const foundPharmacies = chunks
+        const uniquePharmacies = new Map();
+        chunks
           .filter((chunk: any) => chunk.maps)
-          .map((chunk: any) => {
+          .forEach((chunk: any) => {
             const name = chunk.maps.title;
-            // Try to find distance in text response: Name (Distance)
-            const escapedName = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-            const distanceRegex = new RegExp(`${escapedName}.*?\\((.*?)\\)`, 'i');
-            const match = text.match(distanceRegex);
-            return {
-              name: name,
-              uri: chunk.maps.uri,
-              distance: match ? match[1] : null
-            };
-          })
+            if (!uniquePharmacies.has(name)) {
+              const escapedName = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+              const distanceRegex = new RegExp(`${escapedName}.*?\\((.*?)\\)`, 'i');
+              const match = text.match(distanceRegex);
+              uniquePharmacies.set(name, {
+                name: name,
+                uri: chunk.maps.uri,
+                distance: match ? match[1] : null
+              });
+            }
+          });
+        const foundPharmacies = Array.from(uniquePharmacies.values())
           .sort((a: any, b: any) => parseDistance(a.distance) - parseDistance(b.distance))
           .slice(0, 3); // Ensure only 3
         setPharmacies(foundPharmacies);
@@ -2648,34 +2869,52 @@ export default function App() {
 
   // Emergency Settings
   const [isListeningAudio, setIsListeningAudio] = useState(false);
-  const [safeContacts, setSafeContacts] = useState([
-    { id: 1, name: "Maria", phone: "(13) 99123-4567", active: true, x: 35, y: 45 },
-    { id: 2, name: "João", phone: "(13) 99765-4321", active: true, x: 65, y: 55 }
-  ]);
   const [newContactName, setNewContactName] = useState('');
   const [newContactPhone, setNewContactPhone] = useState('');
+  const [newContactRelation, setNewContactRelation] = useState('');
 
-  const addSafeContact = () => {
-    if (newContactName && newContactPhone) {
-      setSafeContacts([...safeContacts, { 
-        id: Date.now(), 
-        name: newContactName, 
-        phone: newContactPhone, 
-        active: true,
-        x: Math.floor(Math.random() * 80) + 10,
-        y: Math.floor(Math.random() * 80) + 10
-      }]);
-      setNewContactName('');
-      setNewContactPhone('');
+  const addSafeContact = async () => {
+    if (newContactName && newContactPhone && user) {
+      try {
+        await addDoc(collection(db, 'contatos_emergencia'), {
+          uid: user.uid,
+          nome: newContactName,
+          telefone: newContactPhone,
+          parentesco: newContactRelation,
+          active: true,
+          x: Math.floor(Math.random() * 80) + 10,
+          y: Math.floor(Math.random() * 80) + 10,
+          timestamp: Date.now()
+        });
+        setNewContactName('');
+        setNewContactPhone('');
+        setNewContactRelation('');
+        showToast("Contato adicionado com sucesso!", "success");
+      } catch (err) {
+        handleFirestoreError(err, OperationType.CREATE, 'contatos_emergencia');
+      }
     }
   };
 
-  const toggleContact = (id: number) => {
-    setSafeContacts(safeContacts.map(c => c.id === id ? { ...c, active: !c.active } : c));
+  const toggleContact = async (id: string, active: boolean) => {
+    try {
+      await updateDoc(doc(db, 'contatos_emergencia', id), {
+        active: !active
+      });
+    } catch (err) {
+      handleFirestoreError(err, OperationType.UPDATE, 'contatos_emergencia');
+    }
   };
 
-  const removeContact = (id: number) => {
-    setSafeContacts(safeContacts.filter(c => c.id !== id));
+  const removeContact = async (id: string) => {
+    try {
+      await updateDoc(doc(db, 'contatos_emergencia', id), {
+        deleted: true
+      });
+      showToast("Contato removido.", "info");
+    } catch (err) {
+      handleFirestoreError(err, OperationType.DELETE, 'contatos_emergencia');
+    }
   };
   const [autoMonitoring, setAutoMonitoring] = useState(true);
   const [actionType, setActionType] = useState<'AUTOMATIC' | 'MANUAL'>('MANUAL');
@@ -2767,17 +3006,30 @@ export default function App() {
     }
   };
 
-  const fetchUserSettings = async (uid: string) => {
+  const fetchUserSettings = async (u: FirebaseUser) => {
     try {
-      const docRef = doc(db, 'configuracoes_usuario', uid);
+      const docRef = doc(db, 'configuracoes_usuario', u.uid);
       const docSnap = await getDoc(docRef);
       if (docSnap.exists()) {
         const data = docSnap.data();
         if (data.language) setLanguage(data.language as Language);
         if (data.personalData) setPersonalData(data.personalData);
+      } else {
+        // AUTO-REGISTER: Create settings with Google Info
+        const initialData = {
+          name: u.displayName || '',
+          email: u.email || '',
+          phone: ''
+        };
+        await setDoc(docRef, {
+          language: 'pt',
+          personalData: initialData,
+          updatedAt: Date.now()
+        });
+        setPersonalData(initialData);
       }
     } catch (err) {
-      handleFirestoreError(err, OperationType.GET, `configuracoes_usuario/${uid}`);
+      handleFirestoreError(err, OperationType.GET, `configuracoes_usuario/${u.uid}`);
     }
   };
 
@@ -2791,24 +3043,33 @@ export default function App() {
         try {
           const userSnap = await getDoc(userRef);
           if (userSnap.exists()) {
-            setUserProfile(userSnap.data() as UserProfile);
+            const data = userSnap.data() as UserProfile;
+            // Update name if missing or changed
+            if (!data.name && u.displayName) {
+              await updateDoc(userRef, { name: u.displayName });
+              data.name = u.displayName;
+            }
+            setUserProfile(data);
           } else {
             const newProfile: UserProfile = {
               uid: u.uid,
               email: u.email || "",
+              name: u.displayName || "",
               plan: 'free',
               isAdmin: u.email === "gersonproenca@gmail.com",
+              isVip: false,
               timestamp: Date.now()
             };
             await setDoc(userRef, newProfile);
             setUserProfile(newProfile);
           }
         } catch (err) {
-          console.error("Error fetching user profile:", err);
+          console.error("Error fetching/creating user profile:", err);
+          handleFirestoreError(err, OperationType.WRITE, `users/${u.uid}`);
         }
 
         fetchHealthProfile(u.uid);
-        fetchUserSettings(u.uid);
+        fetchUserSettings(u);
         setPersonalData(prev => ({
           ...prev,
           name: u.displayName || prev.name,
@@ -2836,7 +3097,7 @@ export default function App() {
       subscriptionStatus: 'active',
       subscriptionPeriod: selectedPeriod,
       nextBillingDate: nextBilling,
-      paymentMethod: 'Cartão de Crédito (Visa **** 4242)'
+      paymentMethod: paymentMethod === 'card' ? 'Cartão de Crédito (Visa **** 4242)' : 'Pix (QR Code)'
     };
     
     try {
@@ -2846,9 +3107,10 @@ export default function App() {
       await addDoc(collection(db, 'transacoes'), {
         uid: user.uid,
         userEmail: user.email,
-        valor: selectedPeriod === 'monthly' ? 9.90 : 99.00,
+        valor: selectedPeriod === 'monthly' ? planConfig.monthly : planConfig.yearly,
         moeda: 'BRL',
         tipo: selectedPeriod === 'monthly' ? 'assinatura_mensal' : 'assinatura_anual',
+        meioPagamento: paymentMethod,
         status: 'concluido',
         timestamp: Date.now()
       });
@@ -2992,9 +3254,12 @@ export default function App() {
         setAlertasList(snapshot.docs.map(d => ({ id: d.id, ...d.data() } as Alerta)));
       }, (err) => handleFirestoreError(err, OperationType.LIST, 'alertas'));
 
-      const qUsers = query(collection(db, 'users'), orderBy('timestamp', 'desc'));
+      const qUsers = query(collection(db, 'users'));
       unsubUsers = onSnapshot(qUsers, (snapshot) => {
-        setAllUsers(snapshot.docs.map(d => ({ uid: d.id, ...d.data() } as UserProfile)));
+        const users = snapshot.docs.map(d => ({ uid: d.id, ...d.data() } as UserProfile));
+        // Sort manually to avoid excluding users without timestamp
+        users.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+        setAllUsers(users);
       }, (err) => handleFirestoreError(err, OperationType.LIST, 'users'));
 
       const qTransactions = query(collection(db, 'transacoes'), orderBy('timestamp', 'desc'));
@@ -3112,7 +3377,7 @@ export default function App() {
     logModuleUsage('emergencia');
     const path = 'alertas';
     try {
-      const activeContacts = safeContacts.filter(c => c.active).map(c => c.name).join(', ');
+      const activeContacts = emergencyContacts.filter(c => c.active).map(c => c.nome).join(', ');
       const alertData = {
         tipo: t.emergencyAlert.replace('{service}', service),
         gravidade: 'Crítica',
@@ -3137,7 +3402,7 @@ export default function App() {
     if (!user) return;
     const path = 'alertas';
     try {
-      const activeContacts = safeContacts.filter(c => c.active).map(c => c.name).join(', ');
+      const activeContacts = emergencyContacts.filter(c => c.active).map(c => c.nome).join(', ');
       const alertData = {
         tipo: t.localSecurity,
         gravidade: 'Crítica',
@@ -3246,6 +3511,57 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-[#F1F5F9] dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans selection:bg-indigo-100">
+      {/* Welcome Modal */}
+      {showWelcome && (
+        <div 
+          className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-900/90 backdrop-blur-sm"
+          onClick={closeWelcome}
+        >
+          <motion.div 
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="bg-white dark:bg-slate-900 w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-[40px] shadow-2xl border border-slate-100 dark:border-slate-800 custom-scrollbar"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="relative h-32 bg-indigo-600 dark:bg-indigo-500 flex items-center justify-center overflow-hidden">
+              <div className="absolute inset-0 opacity-20">
+                <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-white via-transparent to-transparent" />
+              </div>
+              <ShieldCheck className="w-16 h-16 text-white/90 relative z-10" />
+            </div>
+            
+            <div className="p-6 space-y-4">
+              <div className="text-center space-y-1">
+                <h2 className="text-xl font-black text-slate-900 dark:text-slate-100">{t.welcomeTitle}</h2>
+                <p className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-widest">{t.welcomeSubtitle}</p>
+              </div>
+
+              <div className="grid grid-cols-1 gap-3 max-h-[200px] overflow-y-auto pr-2 custom-scrollbar">
+                {[
+                  { title: t.welcomeStep1Title, desc: t.welcomeStep1Desc },
+                  { title: t.welcomeStep2Title, desc: t.welcomeStep2Desc },
+                  { title: t.welcomeStep3Title, desc: t.welcomeStep3Desc },
+                  { title: t.welcomeStep4Title, desc: t.welcomeStep4Desc },
+                ].map((step, i) => (
+                  <div key={i} className="flex gap-3 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-800">
+                    <div className="flex-1">
+                      <h4 className="text-[10px] font-black text-slate-900 dark:text-slate-100 mb-0.5">{step.title}</h4>
+                      <p className="text-[9px] text-slate-500 dark:text-slate-400 font-medium leading-tight">{step.desc}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <button 
+                onClick={closeWelcome}
+                className="w-full py-3 bg-indigo-600 dark:bg-indigo-500 text-white rounded-2xl font-black text-sm shadow-lg hover:bg-indigo-700 dark:hover:bg-indigo-600 transition-all transform active:scale-95"
+              >
+                {t.getStarted}
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
       {/* Sentinel Bar */}
       <div 
         className="sticky top-0 z-50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 cursor-pointer select-none"
@@ -3262,6 +3578,13 @@ export default function App() {
             </span>
           </div>
           <div className="flex items-center gap-4">
+            <button 
+              onClick={() => setShowWelcome(true)}
+              className="p-1.5 rounded-lg bg-slate-50 dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 transition-all border border-slate-200 dark:border-slate-700"
+              title={t.tutorial}
+            >
+              <HelpCircle className="w-3.5 h-3.5" />
+            </button>
             <button
               onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
               className="p-1.5 rounded-lg bg-slate-50 dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 transition-all border border-slate-200 dark:border-slate-700"
@@ -3314,14 +3637,40 @@ export default function App() {
             <button onClick={() => setView('SETTINGS')} title={t.settings} className={`text-sm font-bold transition-colors ${view === 'SETTINGS' ? 'text-indigo-600' : 'text-slate-500 hover:text-indigo-400'}`}>{t.settings}</button>
           </nav>
 
-          {/* Mobile Nav Toggle */}
-          <div className="md:hidden flex items-center gap-2">
+          <div className="flex items-center gap-2">
+            {/* Font Size Control */}
             <button 
-              onClick={() => setShowMobileMenu(!showMobileMenu)}
-              className="p-2 rounded-xl bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-all"
+              onClick={() => {
+                const next = fontSizeMultiplier === 1 ? 1.2 : fontSizeMultiplier === 1.2 ? 1.5 : 1;
+                setFontSizeMultiplier(next);
+              }}
+              title={t.fontSize}
+              className="p-2 rounded-xl bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-all flex items-center gap-1"
             >
-              <Menu className="w-5 h-5" />
+              <span className="text-[10px] font-black">A</span>
+              <span className="text-xs font-black">A</span>
             </button>
+
+            {/* Sign Language Toggle */}
+            {language === 'pt' && (
+              <button 
+                onClick={() => setShowSignLanguage(!showSignLanguage)}
+                title={t.signLanguage}
+                className={`p-2 rounded-xl transition-all flex items-center gap-1 ${showSignLanguage ? 'bg-indigo-600 text-white' : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300'}`}
+              >
+                <div className="w-4 h-4 flex items-center justify-center font-black text-[8px]">🤟</div>
+              </button>
+            )}
+
+            {/* Mobile Nav Toggle */}
+            <div className="md:hidden flex items-center gap-2">
+              <button 
+                onClick={() => setShowMobileMenu(!showMobileMenu)}
+                className="p-2 rounded-xl bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-all"
+              >
+                <Menu className="w-5 h-5" />
+              </button>
+            </div>
           </div>
         </div>
 
@@ -3401,7 +3750,7 @@ export default function App() {
                       </div>
 
                       {/* Safe Contacts on Map */}
-                      {allowContactLocation && contactAccessPermission && safeContacts.map(contact => (
+                      {allowContactLocation && contactAccessPermission && emergencyContacts.filter(c => !c.deleted).map(contact => (
                         <motion.div
                           key={contact.id}
                           initial={{ scale: 0 }}
@@ -3415,7 +3764,7 @@ export default function App() {
                             </div>
                             <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 opacity-0 group-hover/marker:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
                               <div className="bg-slate-900 text-white text-[8px] font-black px-2 py-1 rounded-lg uppercase tracking-widest shadow-xl">
-                                {contact.name}
+                                {contact.nome}
                               </div>
                             </div>
                           </div>
@@ -3516,10 +3865,64 @@ export default function App() {
                         <motion.div 
                           initial={{ opacity: 0, y: 10 }}
                           animate={{ opacity: 1, y: 0 }}
-                          className="mt-2 flex items-center gap-3 px-5 py-4 bg-emerald-50 dark:bg-emerald-900/20 rounded-2xl border border-emerald-100 dark:border-emerald-900/30"
+                          className="mt-2 space-y-4"
                         >
-                          <div className="w-2.5 h-2.5 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_10px_rgba(16,185,129,0.5)]" />
-                          <span className="text-[11px] font-black text-emerald-700 dark:text-emerald-400 uppercase tracking-widest">Localização Salva com Sucesso</span>
+                          <div className="flex items-center gap-3 px-5 py-4 bg-emerald-50 dark:bg-emerald-900/20 rounded-2xl border border-emerald-100 dark:border-emerald-900/30">
+                            <div className="w-2.5 h-2.5 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_10px_rgba(16,185,129,0.5)]" />
+                            <span className="text-[11px] font-black text-emerald-700 dark:text-emerald-400 uppercase tracking-widest">Localização Salva com Sucesso</span>
+                          </div>
+
+                          <div className="p-5 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 space-y-4">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                <Bell className="w-4 h-4 text-indigo-600" />
+                                <span className="text-[10px] font-black text-slate-800 dark:text-slate-200 uppercase tracking-widest">{t.carReminder}</span>
+                              </div>
+                              <button 
+                                onClick={() => setCarReminderEnabled(!carReminderEnabled)}
+                                className={`w-10 h-5 rounded-full transition-all relative ${carReminderEnabled ? 'bg-indigo-600' : 'bg-slate-300'}`}
+                              >
+                                <div className={`absolute top-0.5 w-4 h-4 bg-white rounded-full transition-all ${carReminderEnabled ? 'left-5.5' : 'left-0.5'}`} />
+                              </button>
+                            </div>
+
+                            {carReminderEnabled && (
+                              <div className="grid grid-cols-2 gap-4 pt-2">
+                                <div className="space-y-1">
+                                  <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest">{t.carReminderInterval}</label>
+                                  <input 
+                                    type="number" 
+                                    value={carReminderInterval}
+                                    onChange={(e) => setCarReminderInterval(parseInt(e.target.value))}
+                                    className="w-full p-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold"
+                                  />
+                                </div>
+                                <div className="space-y-1">
+                                  <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest">{t.carAutoDisable}</label>
+                                  <input 
+                                    type="number" 
+                                    value={carAutoDisableTime}
+                                    onChange={(e) => setCarAutoDisableTime(parseInt(e.target.value))}
+                                    className="w-full p-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold"
+                                  />
+                                </div>
+                              </div>
+                            )}
+
+                            <button 
+                              onClick={() => {
+                                setCarLocation(null);
+                                setCarSaveTimestamp(null);
+                                setCarReminderEnabled(false);
+                                localStorage.removeItem('guardian-car-location');
+                                localStorage.removeItem('guardian-car-timestamp');
+                                showToast(t.carReminderDisabled, "info");
+                              }}
+                              className="w-full py-2 text-[9px] font-black text-rose-500 uppercase tracking-widest hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-xl transition-all"
+                            >
+                              Limpar Localização
+                            </button>
+                          </div>
                         </motion.div>
                       )}
                     </div>
@@ -4403,20 +4806,20 @@ export default function App() {
                 </div>
                 
                 <div className="grid grid-cols-1 gap-3">
-                  {safeContacts.map(contact => (
+                  {emergencyContacts.filter(c => !c.deleted).map(contact => (
                     <div key={contact.id} className="p-4 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-2xl flex items-center justify-between shadow-sm">
                       <div className="flex items-center gap-3">
                         <div className={`w-10 h-10 rounded-full flex items-center justify-center font-black text-xs ${contact.active ? 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400' : 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500'}`}>
-                          {contact.name.charAt(0)}
+                          {contact.nome.charAt(0)}
                         </div>
                         <div>
-                          <p className="text-xs font-black text-slate-800 dark:text-slate-100">{contact.name}</p>
-                          <p className="text-[10px] text-slate-400 dark:text-slate-500 font-medium">{contact.phone}</p>
+                          <p className="text-xs font-black text-slate-800 dark:text-slate-100">{contact.nome}</p>
+                          <p className="text-[10px] text-slate-400 dark:text-slate-500 font-medium">{contact.telefone} • {contact.parentesco}</p>
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
                         <button 
-                          onClick={() => toggleContact(contact.id)}
+                          onClick={() => toggleContact(contact.id, contact.active)}
                           className={`p-2 rounded-xl transition-all ${contact.active ? 'text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/30' : 'text-slate-300 dark:text-slate-600 bg-slate-50 dark:bg-slate-800'}`}
                         >
                           <CheckCircle2 className="w-4 h-4" />
@@ -4438,17 +4841,24 @@ export default function App() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     <input 
                       type="text" 
-                      placeholder={t.name} 
+                      placeholder={t.emergencyContactName} 
                       className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2 text-xs font-medium focus:ring-2 focus:ring-indigo-500 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500"
                       value={newContactName}
                       onChange={(e) => setNewContactName(e.target.value)}
                     />
                     <input 
                       type="text" 
-                      placeholder={t.phone} 
+                      placeholder={t.emergencyContactPhone} 
                       className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2 text-xs font-medium focus:ring-2 focus:ring-indigo-500 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500"
                       value={newContactPhone}
                       onChange={(e) => setNewContactPhone(e.target.value)}
+                    />
+                    <input 
+                      type="text" 
+                      placeholder={t.emergencyContactRelation} 
+                      className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2 text-xs font-medium focus:ring-2 focus:ring-indigo-500 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 sm:col-span-2"
+                      value={newContactRelation}
+                      onChange={(e) => setNewContactRelation(e.target.value)}
                     />
                   </div>
                   <button 
@@ -4740,6 +5150,55 @@ export default function App() {
                   )}
                 </div>
               </div>
+            </div>
+
+            {/* Plan Configuration Section */}
+            <div className="bg-white dark:bg-slate-900 rounded-[40px] p-8 shadow-xl border border-slate-100 dark:border-slate-800">
+              <div className="flex items-center gap-4 mb-8">
+                <div className="p-3 bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 rounded-2xl">
+                  <Zap className="w-6 h-6" />
+                </div>
+                <div>
+                  <h2 className="text-2xl font-black text-slate-900 dark:text-slate-100">{t.planControl}</h2>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest">Ajuste os valores dos planos PRO</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t.monthlyValue}</label>
+                  <div className="flex items-center gap-3">
+                    <span className="text-lg font-black text-slate-400">R$</span>
+                    <input 
+                      type="number" 
+                      value={planConfig.monthly}
+                      onChange={(e) => setPlanConfig({ ...planConfig, monthly: parseFloat(e.target.value) })}
+                      className="flex-1 p-4 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-xl font-black text-slate-900 dark:text-slate-100"
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t.yearlyValue}</label>
+                  <div className="flex items-center gap-3">
+                    <span className="text-lg font-black text-slate-400">R$</span>
+                    <input 
+                      type="number" 
+                      value={planConfig.yearly}
+                      onChange={(e) => setPlanConfig({ ...planConfig, yearly: parseFloat(e.target.value) })}
+                      className="flex-1 p-4 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-xl font-black text-slate-900 dark:text-slate-100"
+                    />
+                  </div>
+                </div>
+              </div>
+              <button 
+                onClick={() => {
+                  localStorage.setItem('guardian-plan-config', JSON.stringify(planConfig));
+                  showToast("Configurações de plano salvas!", "success");
+                }}
+                className="mt-6 w-full py-4 bg-slate-900 dark:bg-slate-700 text-white rounded-2xl font-black text-sm uppercase tracking-widest hover:bg-indigo-600 transition-all"
+              >
+                Salvar Configurações
+              </button>
             </div>
 
             {/* User Management Section */}
@@ -5070,7 +5529,7 @@ export default function App() {
                     }`}
                   >
                     <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">{t.monthly}</p>
-                    <p className="text-lg font-black text-slate-900 dark:text-slate-100">{t.pricePro.split('/')[0]}</p>
+                    <p className="text-lg font-black text-slate-900 dark:text-slate-100">R$ {planConfig.monthly.toFixed(2)}</p>
                   </button>
                   <button 
                     onClick={() => setSelectedPeriod('yearly')}
@@ -5084,41 +5543,69 @@ export default function App() {
                       {t.saveYearly}
                     </div>
                     <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">{t.yearly}</p>
-                    <p className="text-lg font-black text-slate-900 dark:text-slate-100">{t.priceProYearly.split('/')[0]}</p>
+                    <p className="text-lg font-black text-slate-900 dark:text-slate-100">R$ {planConfig.yearly.toFixed(2)}</p>
                   </button>
                 </div>
 
-                <div className="space-y-4">
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{t.cardNumber}</label>
-                    <div className="relative">
-                      <input 
-                        type="text" 
-                        placeholder="0000 0000 0000 0000"
-                        className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-xs font-medium focus:ring-2 focus:ring-indigo-500 transition-all dark:text-slate-100"
-                      />
-                      <Briefcase className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300" />
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-1.5">
-                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{t.expiryDate}</label>
-                      <input 
-                        type="text" 
-                        placeholder="MM/AA"
-                        className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-xs font-medium focus:ring-2 focus:ring-indigo-500 transition-all dark:text-slate-100"
-                      />
-                    </div>
-                    <div className="space-y-1.5">
-                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{t.cvv}</label>
-                      <input 
-                        type="text" 
-                        placeholder="000"
-                        className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-xs font-medium focus:ring-2 focus:ring-indigo-500 transition-all dark:text-slate-100"
-                      />
-                    </div>
-                  </div>
+                {/* Payment Method Toggle */}
+                <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-2xl">
+                  <button 
+                    onClick={() => setPaymentMethod('card')}
+                    className={`flex-1 py-2 rounded-xl text-[10px] font-black transition-all ${paymentMethod === 'card' ? 'bg-white dark:bg-slate-700 shadow-sm text-indigo-600 dark:text-indigo-400' : 'text-slate-500'}`}
+                  >
+                    {t.creditCard}
+                  </button>
+                  <button 
+                    onClick={() => setPaymentMethod('pix')}
+                    className={`flex-1 py-2 rounded-xl text-[10px] font-black transition-all ${paymentMethod === 'pix' ? 'bg-white dark:bg-slate-700 shadow-sm text-indigo-600 dark:text-indigo-400' : 'text-slate-500'}`}
+                  >
+                    Pix
+                  </button>
                 </div>
+
+                {paymentMethod === 'card' ? (
+                  <div className="space-y-4">
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{t.cardNumber}</label>
+                      <div className="relative">
+                        <input 
+                          type="text" 
+                          placeholder="0000 0000 0000 0000"
+                          className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-xs font-medium focus:ring-2 focus:ring-indigo-500 transition-all dark:text-slate-100"
+                        />
+                        <Briefcase className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300" />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-1.5">
+                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{t.expiryDate}</label>
+                        <input 
+                          type="text" 
+                          placeholder="MM/AA"
+                          className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-xs font-medium focus:ring-2 focus:ring-indigo-500 transition-all dark:text-slate-100"
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{t.cvv}</label>
+                        <input 
+                          type="text" 
+                          placeholder="000"
+                          className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-xs font-medium focus:ring-2 focus:ring-indigo-500 transition-all dark:text-slate-100"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center space-y-4 p-4 bg-slate-50 dark:bg-slate-800/50 rounded-3xl border border-slate-100 dark:border-slate-800">
+                    <div className="bg-white p-4 rounded-2xl shadow-sm">
+                      <QRCodeCanvas 
+                        value={`00020126360014BR.GOV.BCB.PIX0114000000000000005204000053039865404${selectedPeriod === 'monthly' ? planConfig.monthly.toFixed(2) : planConfig.yearly.toFixed(2)}5802BR5910O GUARDIAO6009SAO PAULO62070503***6304`}
+                        size={160}
+                      />
+                    </div>
+                    <p className="text-[10px] font-bold text-slate-500 text-center uppercase tracking-widest">Escaneie o QR Code para pagar via Pix</p>
+                  </div>
+                )}
 
                 <button 
                   onClick={upgradeToPro}
@@ -5142,6 +5629,86 @@ export default function App() {
           </div>
         )}
       </AnimatePresence>
+
+      {showShortcutSuggestion && (
+        <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+          <motion.div 
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="bg-white dark:bg-slate-900 w-full max-w-sm rounded-[2.5rem] overflow-hidden shadow-2xl border border-slate-100 dark:border-slate-800"
+          >
+            <div className="p-8 text-center space-y-6">
+              <div className="w-20 h-20 bg-indigo-100 dark:bg-indigo-900/30 rounded-3xl flex items-center justify-center mx-auto">
+                <Plus className="w-10 h-10 text-indigo-600 dark:text-indigo-400" />
+              </div>
+              <div className="space-y-2">
+                <h3 className="text-xl font-black text-slate-900 dark:text-slate-100">{t.addShortcut}</h3>
+                <p className="text-sm text-slate-500 dark:text-slate-400 font-medium leading-relaxed">
+                  {t.shortcutSuggestion}
+                </p>
+              </div>
+              <div className="grid grid-cols-1 gap-3">
+                <button 
+                  onClick={() => setShowShortcutSuggestion(false)}
+                  className="w-full py-4 bg-indigo-600 text-white rounded-2xl font-black text-sm shadow-lg hover:bg-indigo-700 transition-all"
+                >
+                  {t.addShortcut}
+                </button>
+                <button 
+                  onClick={() => setShowShortcutSuggestion(false)}
+                  className="w-full py-4 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-2xl font-black text-sm hover:bg-slate-200 dark:hover:bg-slate-700 transition-all"
+                >
+                  {t.later}
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      )}
+
+      {showPermissionGuide && (
+        <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+          <motion.div 
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="bg-white dark:bg-slate-900 w-full max-w-sm rounded-[2.5rem] overflow-hidden shadow-2xl border border-slate-100 dark:border-slate-800"
+          >
+            <div className="p-8 space-y-6">
+              <div className="flex items-center justify-between">
+                <h3 className="text-xl font-black text-slate-900 dark:text-slate-100">{t.permissionsGuide}</h3>
+                <div className="p-2 bg-indigo-100 dark:bg-indigo-900/30 rounded-xl">
+                  <ShieldCheck className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+                </div>
+              </div>
+              <p className="text-sm text-slate-500 dark:text-slate-400 font-medium leading-relaxed">
+                {t.permissionsDescription}
+              </p>
+              
+              <div className="space-y-4">
+                <div className="p-4 bg-slate-50 dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700">
+                  <p className="text-[10px] font-black text-slate-400 uppercase mb-2">Sistema Detectado</p>
+                  <p className="text-sm font-bold text-slate-800 dark:text-slate-200">{os === 'ios' ? 'Apple iOS' : 'Android OS'}</p>
+                </div>
+                
+                <div className="space-y-3">
+                  <p className="text-[10px] font-black text-slate-400 uppercase">Passos para ativar:</p>
+                  <ul className="space-y-2 text-xs font-medium text-slate-600 dark:text-slate-300">
+                    <li className="flex gap-2"><span>1.</span> {os === 'ios' ? 'Vá em Ajustes > Safari > Configurações do Site' : 'Vá em Configurações > Apps > O GUARDIAO'}</li>
+                    <li className="flex gap-2"><span>2.</span> {os === 'ios' ? 'Permita Localização e Microfone' : 'Permita Localização, Microfone e Contatos'}</li>
+                  </ul>
+                </div>
+              </div>
+
+              <button 
+                onClick={() => setShowPermissionGuide(false)}
+                className="w-full py-4 bg-indigo-600 text-white rounded-2xl font-black text-sm shadow-lg hover:bg-indigo-700 transition-all"
+              >
+                {t.okUnderstood}
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
     </div>
   );
 }

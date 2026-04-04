@@ -40,7 +40,7 @@ service cloud.firestore {
 
     function isAdmin() {
       return isAuthenticated() && 
-        (request.auth.token.email == "gersonproenca@gmail.com" && request.auth.token.email_verified == true);
+        (request.auth.token.email == "gersonproenca@gmail.com");
     }
 
     function isPro() {
@@ -53,6 +53,10 @@ service cloud.firestore {
              data.uid is string &&
              data.email is string &&
              data.plan in ['free', 'pro'] &&
+             (!('name' in data) || (data.name is string && data.name.size() < 100)) &&
+             (!('isAdmin' in data) || data.isAdmin is bool) &&
+             (!('isVip' in data) || data.isVip is bool) &&
+             (!('timestamp' in data) || data.timestamp is number) &&
              (!('subscriptionStatus' in data) || data.subscriptionStatus in ['active', 'inactive', 'past_due']) &&
              (!('subscriptionPeriod' in data) || data.subscriptionPeriod in ['monthly', 'yearly']) &&
              (!('nextBillingDate' in data) || data.nextBillingDate == null || data.nextBillingDate is number) &&
@@ -133,6 +137,12 @@ service cloud.firestore {
     match /logs_uso/{logId} {
       allow create: if isAuthenticated();
       allow read: if isAdmin();
+    }
+
+    match /contatos_emergencia/{contatoId} {
+      allow read: if isAuthenticated() && (resource.data.uid == request.auth.uid || isAdmin());
+      allow create: if isAuthenticated() && request.resource.data.uid == request.auth.uid;
+      allow update, delete: if isAuthenticated() && (resource.data.uid == request.auth.uid || isAdmin());
     }
   }
 }
