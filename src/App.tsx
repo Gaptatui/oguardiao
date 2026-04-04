@@ -54,6 +54,41 @@ const formatDate = (dateStr?: string) => {
   }
 };
 
+const formatCurrency = (value: number, lang: string = 'pt') => {
+  const currencyMap: Record<string, string> = {
+    'pt': 'BRL',
+    'en': 'USD',
+    'es': 'EUR',
+    'fr': 'EUR',
+    'de': 'EUR',
+    'it': 'EUR',
+    'nl': 'EUR',
+    'zh': 'CNY',
+    'he': 'ILS'
+  };
+  const currency = currencyMap[lang] || 'USD';
+  
+  const localeMap: Record<string, string> = {
+    'pt': 'pt-BR',
+    'en': 'en-US',
+    'es': 'es-ES',
+    'fr': 'fr-FR',
+    'de': 'de-DE',
+    'it': 'it-IT',
+    'nl': 'nl-NL',
+    'zh': 'zh-CN',
+    'he': 'he-IL'
+  };
+  const locale = localeMap[lang] || lang;
+
+  return new Intl.NumberFormat(locale, {
+    style: 'currency',
+    currency: currency,
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  }).format(value);
+};
+
 interface AnalysisResult {
   verdict: 'SEGURO' | 'SUSPEITO' | 'GOLPE CONFIRMADO';
   reason: string;
@@ -5278,13 +5313,13 @@ export default function App() {
                   <div className="p-4 bg-emerald-50 dark:bg-emerald-900/20 rounded-2xl border border-emerald-100 dark:border-emerald-900/30">
                     <p className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-widest mb-1">{t.expenses}</p>
                     <p className="text-xl font-black text-slate-900 dark:text-slate-100">
-                      R$ {expenses.reduce((acc, curr) => acc + curr.valor, 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                      {formatCurrency(expenses.reduce((acc, curr) => acc + curr.valor, 0))}
                     </p>
                   </div>
                   <div className="p-4 bg-rose-50 dark:bg-rose-900/20 rounded-2xl border border-rose-100 dark:border-rose-900/30">
                     <p className="text-[10px] font-bold text-rose-600 dark:text-rose-400 uppercase tracking-widest mb-1">{t.debts}</p>
                     <p className="text-xl font-black text-slate-900 dark:text-slate-100">
-                      R$ {debts.reduce((acc, curr) => acc + curr.valor, 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                      {formatCurrency(debts.reduce((acc, curr) => acc + curr.valor, 0))}
                     </p>
                   </div>
                 </div>
@@ -6092,7 +6127,7 @@ export default function App() {
                             <p className="text-[8px] text-slate-400 uppercase font-black">{exp.categoria}</p>
                           </div>
                           <div className="flex items-center gap-3">
-                            <p className="text-xs font-black text-emerald-600 dark:text-emerald-400 whitespace-nowrap">R$ {exp.valor.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                            <p className="text-xs font-black text-emerald-600 dark:text-emerald-400 whitespace-nowrap">{formatCurrency(exp.valor)}</p>
                             <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                               <button onClick={() => setEditingExpense(exp)} className="p-1 text-slate-400 hover:text-indigo-500 transition-colors">
                                 <Edit2 className="w-3 h-3" />
@@ -6180,7 +6215,7 @@ export default function App() {
                               <p className="text-[8px] text-slate-400 uppercase font-black">{debt.taxaJuros}% a.m.</p>
                             </div>
                             <div className="flex items-center gap-3">
-                              <p className="text-xs font-black text-rose-600 dark:text-rose-400 whitespace-nowrap">R$ {debt.valor.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                              <p className="text-xs font-black text-rose-600 dark:text-rose-400 whitespace-nowrap">{formatCurrency(debt.valor)}</p>
                               <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                 <button onClick={() => setEditingDebt(debt)} className="p-1 text-slate-400 hover:text-indigo-500 transition-colors">
                                   <Edit2 className="w-3 h-3" />
@@ -6237,7 +6272,7 @@ export default function App() {
                           <span className="text-xs font-bold text-slate-600 dark:text-slate-300">{t.fixed}</span>
                         </div>
                         <span className="text-sm font-black text-slate-900 dark:text-slate-100">
-                          R$ {expenses.filter(e => e.categoria === 'Fixa').reduce((acc, curr) => acc + curr.valor, 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                          {formatCurrency(expenses.filter(e => e.categoria === 'Fixa').reduce((acc, curr) => acc + curr.valor, 0))}
                         </span>
                       </div>
                       <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800 rounded-2xl">
@@ -6246,13 +6281,13 @@ export default function App() {
                           <span className="text-xs font-bold text-slate-600 dark:text-slate-300">{t.variable}</span>
                         </div>
                         <span className="text-sm font-black text-slate-900 dark:text-slate-100">
-                          R$ {expenses.filter(e => e.categoria === 'Variável').reduce((acc, curr) => acc + curr.valor, 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                          {formatCurrency(expenses.filter(e => e.categoria === 'Variável').reduce((acc, curr) => acc + curr.valor, 0))}
                         </span>
                       </div>
                       <div className="flex items-center justify-between p-4 bg-indigo-50 dark:bg-indigo-900/20 rounded-2xl border border-indigo-100 dark:border-indigo-900/30">
                         <span className="text-xs font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-widest">{t.total}</span>
                         <span className="text-lg font-black text-indigo-900 dark:text-indigo-100">
-                          R$ {expenses.reduce((acc, curr) => acc + curr.valor, 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                          {formatCurrency(expenses.reduce((acc, curr) => acc + curr.valor, 0))}
                         </span>
                       </div>
                     </div>
@@ -6516,7 +6551,7 @@ export default function App() {
               <div className="bg-white dark:bg-slate-900 p-6 rounded-[32px] shadow-sm border border-slate-100 dark:border-slate-800">
                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{t.revenue}</p>
                 <h3 className="text-3xl font-black text-emerald-600 dark:text-emerald-400">
-                  R$ {transactions.reduce((acc, curr) => acc + curr.valor, 0).toFixed(2)}
+                  {formatCurrency(transactions.reduce((acc, curr) => acc + curr.valor, 0))}
                 </h3>
               </div>
               <div className="bg-white dark:bg-slate-900 p-6 rounded-[32px] shadow-sm border border-slate-100 dark:border-slate-800">
@@ -6602,7 +6637,7 @@ export default function App() {
                 <div className="space-y-2">
                   <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t.monthlyValue}</label>
                   <div className="flex items-center gap-3">
-                    <span className="text-lg font-black text-slate-400">R$</span>
+                    <span className="text-lg font-black text-slate-400">{formatCurrency(0).replace(/[\d.,\s\u00A0]/g, '')}</span>
                     <input 
                       type="number" 
                       value={planConfig.monthly}
@@ -6614,7 +6649,7 @@ export default function App() {
                 <div className="space-y-2">
                   <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t.yearlyValue}</label>
                   <div className="flex items-center gap-3">
-                    <span className="text-lg font-black text-slate-400">R$</span>
+                    <span className="text-lg font-black text-slate-400">{formatCurrency(0).replace(/[\d.,\s\u00A0]/g, '')}</span>
                     <input 
                       type="number" 
                       value={planConfig.yearly}
@@ -6963,7 +6998,7 @@ export default function App() {
                     }`}
                   >
                     <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">{t.monthly}</p>
-                    <p className="text-lg font-black text-slate-900 dark:text-slate-100">R$ {planConfig.monthly.toFixed(2)}</p>
+                    <p className="text-lg font-black text-slate-900 dark:text-slate-100">{formatCurrency(planConfig.monthly)}</p>
                   </button>
                   <button 
                     onClick={() => setSelectedPeriod('yearly')}
@@ -6977,7 +7012,7 @@ export default function App() {
                       {t.saveYearly}
                     </div>
                     <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">{t.yearly}</p>
-                    <p className="text-lg font-black text-slate-900 dark:text-slate-100">R$ {planConfig.yearly.toFixed(2)}</p>
+                    <p className="text-lg font-black text-slate-900 dark:text-slate-100">{formatCurrency(planConfig.yearly)}</p>
                   </button>
                 </div>
 
