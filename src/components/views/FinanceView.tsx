@@ -4,7 +4,7 @@ import { motion } from 'motion/react';
 import { 
   Briefcase, ArrowUpCircle, Edit2, Trash2, PlusCircle, 
   AlertCircle, ShoppingBag, Search, Clock, RefreshCw, 
-  BarChart3, Sparkles, ChevronLeft
+  BarChart3, Sparkles, ChevronLeft, Copy, Check
 } from 'lucide-react';
 import Markdown from 'react-markdown';
 import { 
@@ -71,6 +71,16 @@ export const FinanceView: React.FC<FinanceViewProps> = ({
   financingOptions, searchFinancingRates, isSearchingRates,
   isGeneratingProject, generateFinancialProject, financialProject
 }) => {
+  const [copied, setCopied] = React.useState(false);
+
+  const copyToClipboard = () => {
+    if (productSearchResult) {
+      navigator.clipboard.writeText(productSearchResult);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
   return (
     <motion.div key="financeiro" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="max-w-4xl mx-auto space-y-8 pb-20">
       <div className="flex items-center justify-between">
@@ -150,8 +160,8 @@ export const FinanceView: React.FC<FinanceViewProps> = ({
           <div className="pt-4 border-t border-slate-100 dark:border-slate-800">
             <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4">{t.recentIncomes}</h4>
             <div className="space-y-2 max-h-48 overflow-y-auto pr-2">
-              {incomes.map(inc => (
-                <div key={inc.id} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-800 group">
+              {incomes.map((inc, idx) => (
+                <div key={`income-${inc.id || `idx-${idx}-${inc.descricao}`}`} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-800 group">
                   <div className="flex-1">
                     <p className="text-xs font-bold text-slate-800 dark:text-slate-200">{inc.descricao}</p>
                     <p className="text-[8px] text-slate-400 uppercase font-black">{inc.categoria}</p>
@@ -248,8 +258,8 @@ export const FinanceView: React.FC<FinanceViewProps> = ({
           <div className="pt-4 border-t border-slate-100 dark:border-slate-800">
             <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4">{t.recentExpenses}</h4>
             <div className="space-y-2 max-h-48 overflow-y-auto pr-2">
-              {expenses.map(exp => (
-                <div key={exp.id} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-800 group">
+              {expenses.map((exp, idx) => (
+                <div key={`expense-${exp.id || `idx-${idx}-${exp.descricao}`}`} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-800 group">
                   <div className="flex-1">
                     <p className="text-xs font-bold text-slate-800 dark:text-slate-200">{exp.descricao}</p>
                     <p className="text-[8px] text-slate-400 uppercase font-black">{exp.categoria}</p>
@@ -336,8 +346,8 @@ export const FinanceView: React.FC<FinanceViewProps> = ({
             <div className="pt-4 border-t border-slate-100 dark:border-slate-800">
               <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4">{t.recentDebts}</h4>
               <div className="space-y-2 max-h-48 overflow-y-auto pr-2">
-                {debts.map(debt => (
-                  <div key={debt.id} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-800 group">
+                {debts.map((debt, idx) => (
+                  <div key={`debt-${debt.id || `idx-${idx}-${debt.credor}`}`} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-800 group">
                     <div className="flex-1">
                       <p className="text-xs font-bold text-slate-800 dark:text-slate-200">{debt.credor}</p>
                       <p className="text-[8px] text-slate-400 uppercase font-black">{debt.taxaJuros}% a.m.</p>
@@ -365,7 +375,7 @@ export const FinanceView: React.FC<FinanceViewProps> = ({
           <div className="bg-white dark:bg-slate-900 rounded-3xl p-8 shadow-sm border border-slate-200 dark:border-slate-800 space-y-6">
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-black text-slate-800 dark:text-slate-200 flex items-center gap-2">
-                <ShoppingBag className="w-4 h-4 text-indigo-600 dark:text-indigo-400" /> {t.smartSearch}
+                <ShoppingBag className="w-4 h-4 text-indigo-600 dark:text-indigo-400" /> Busca Inteligente Preços e Produtos
               </h3>
               <span className="px-2 py-1 bg-amber-100 text-amber-700 text-[8px] font-black rounded uppercase tracking-widest">PRO</span>
             </div>
@@ -397,7 +407,14 @@ export const FinanceView: React.FC<FinanceViewProps> = ({
 
             {productSearchResult && !isSearchingProduct && (
               <div className="p-6 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-800 space-y-4">
-                <div className="prose prose-slate prose-xs dark:prose-invert max-w-none">
+                <div className="prose prose-slate prose-xs dark:prose-invert max-w-none relative">
+                  <button 
+                    onClick={copyToClipboard}
+                    className="absolute top-0 right-0 p-2 text-slate-400 hover:text-indigo-600 transition-colors"
+                    title="Copiar para área de transferência"
+                  >
+                    {copied ? <Check className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4" />}
+                  </button>
                   <Markdown>{productSearchResult}</Markdown>
                 </div>
                 <div className="flex justify-end">
@@ -440,9 +457,9 @@ export const FinanceView: React.FC<FinanceViewProps> = ({
                     paddingAngle={5}
                     dataKey="value"
                   >
-                    <Cell fill="#10b981" />
-                    <Cell fill="#f59e0b" />
-                    <Cell fill="#6366f1" />
+                    <Cell key="cell-income" fill="#10b981" />
+                    <Cell key="cell-expense-fixed" fill="#f59e0b" />
+                    <Cell key="cell-expense-variable" fill="#6366f1" />
                   </Pie>
                   <Tooltip />
                 </PieChart>
@@ -500,7 +517,7 @@ export const FinanceView: React.FC<FinanceViewProps> = ({
             </div>
             <div className="space-y-3">
               {financingOptions.length > 0 ? financingOptions.map((opt, i) => (
-                <div key={i} className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-800">
+                <div key={`financing-opt-${opt.bank}-${i}`} className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-800">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-xs font-black text-slate-800 dark:text-slate-200">{opt.bank}</span>
                     <span className="text-xs font-black text-emerald-600 dark:text-emerald-400">{opt.rate}</span>
@@ -536,7 +553,7 @@ export const FinanceView: React.FC<FinanceViewProps> = ({
                   <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t.tips}</p>
                   <div className="flex flex-wrap gap-2">
                     {financialProject.dicas.map((dica, i) => (
-                      <span key={i} className="px-3 py-1.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-lg text-[10px] font-bold">{dica}</span>
+                      <span key={`financial-tip-${i}`} className="px-3 py-1.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-lg text-[10px] font-bold">{dica}</span>
                     ))}
                   </div>
                 </div>
@@ -544,7 +561,7 @@ export const FinanceView: React.FC<FinanceViewProps> = ({
                   <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t.goals}</p>
                   <div className="space-y-2">
                     {financialProject.metas.map((meta, i) => (
-                      <div key={i} className="flex items-center gap-2">
+                      <div key={`financial-goal-${i}`} className="flex items-center gap-2">
                         <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full" />
                         <span className="text-[10px] font-bold text-slate-600 dark:text-slate-300">{meta}</span>
                       </div>

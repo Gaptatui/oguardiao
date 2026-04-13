@@ -162,8 +162,8 @@ export const EmergencyView: React.FC<EmergencyViewProps> = ({
         </div>
         
         <div className="grid grid-cols-1 gap-3">
-          {emergencyContacts.filter(c => !c.deleted).map(contact => (
-            <div key={contact.id} className="p-4 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-2xl flex items-center justify-between shadow-sm">
+          {emergencyContacts.filter(c => !c.deleted).map((contact, idx) => (
+            <div key={`emergency-contact-${contact.id || `idx-${idx}-${contact.nome}`}`} className="p-4 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-2xl flex items-center justify-between shadow-sm">
               <div className="flex items-center gap-3">
                 <div className={`w-10 h-10 rounded-full flex items-center justify-center font-black text-xs ${contact.active ? 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400' : 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500'}`}>
                   {contact.nome.charAt(0)}

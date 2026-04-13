@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   collection, addDoc, onSnapshot, query, orderBy, where,
   limit, updateDoc, doc, getDoc, setDoc, deleteDoc
@@ -119,15 +119,24 @@ export const ConfiguracaoModule: React.FC<ConfiguracaoModuleProps> = ({
     showToast(t.subscriptionCancelled, "info");
   };
 
+  const lastDataRef = useRef<string>('');
+
   // Sync Data with App.tsx
   useEffect(() => {
-    onDataChange({
+    const dataToSync = {
       personalData,
       setPersonalData,
       saveSettings,
       cancelSubscription
-    });
-  }, [personalData, language]);
+    };
+
+    const dataString = JSON.stringify({ personalData, language });
+
+    if (dataString !== lastDataRef.current) {
+      lastDataRef.current = dataString;
+      onDataChange(dataToSync);
+    }
+  }, [personalData, language, onDataChange]);
 
   return (
     <>

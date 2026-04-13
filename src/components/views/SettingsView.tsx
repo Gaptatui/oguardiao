@@ -103,7 +103,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             <p className="text-xs font-bold text-slate-700 dark:text-slate-300">{t.benefitsPro}</p>
             <div className="grid grid-cols-1 gap-2">
               {[t.benefit1, t.benefit2, t.benefit3, t.benefit4, t.benefit5].map((benefit, i) => (
-                <p key={i} className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">{benefit}</p>
+                <p key={`benefit-${i}`} className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">{benefit}</p>
               ))}
             </div>
           </div>

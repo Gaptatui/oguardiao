@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
-  LineChart, Line, PieChart, Pie, Cell, Legend 
+  LineChart, Line 
 } from 'recharts';
 import { formatCurrency } from '../lib/utils';
 import { Language, UserProfile, Transaction, UsageLog, Alerta } from '../types';
@@ -216,8 +216,8 @@ export const AdminPanel = ({
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-50 dark:divide-slate-800/50">
-              {allUsers.map((u) => (
-                <tr key={u.uid} className="group">
+              {allUsers.map((u, idx) => (
+                <tr key={`user-row-${u.uid || `idx-${idx}-${u.email}`}`} className="group">
                   <td className="py-4">
                     <div className="flex items-center gap-3">
                       {u.photoURL && <img src={u.photoURL} alt="" className="w-8 h-8 rounded-full border border-slate-200" referrerPolicy="no-referrer" />}
@@ -291,8 +291,8 @@ export const AdminPanel = ({
       </div>
 
       <div className="grid grid-cols-1 gap-6">
-        {alertasList.length > 0 ? alertasList.map((alerta) => (
-          <div key={alerta.id} className="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
+        {alertasList.length > 0 ? alertasList.map((alerta, idx) => (
+          <div key={`admin-alert-${alerta.id || `idx-${idx}-${alerta.timestamp}`}`} className="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className={`p-2 rounded-xl ${

@@ -59,30 +59,30 @@ export const FinanceiroModule: React.FC<FinanceiroModuleProps> = ({
   useEffect(() => {
     if (!user) return;
 
-    const qExpenses = query(collection(db, 'expenses'), where('uid', '==', user.uid), orderBy('timestamp', 'desc'));
+    const qExpenses = query(collection(db, 'gastos'), where('uid', '==', user.uid), orderBy('timestamp', 'desc'));
     const unsubExpenses = onSnapshot(qExpenses, (snapshot) => {
       const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Expense));
       setExpenses(data);
-    }, (error) => handleFirestoreError(error, OperationType.LIST, 'expenses'));
+    }, (error) => handleFirestoreError(error, OperationType.LIST, 'gastos'));
 
-    const qIncomes = query(collection(db, 'incomes'), where('uid', '==', user.uid), orderBy('timestamp', 'desc'));
+    const qIncomes = query(collection(db, 'receitas'), where('uid', '==', user.uid), orderBy('timestamp', 'desc'));
     const unsubIncomes = onSnapshot(qIncomes, (snapshot) => {
       const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Income));
       setIncomes(data);
-    }, (error) => handleFirestoreError(error, OperationType.LIST, 'incomes'));
+    }, (error) => handleFirestoreError(error, OperationType.LIST, 'receitas'));
 
-    const qDebts = query(collection(db, 'debts'), where('uid', '==', user.uid), orderBy('timestamp', 'desc'));
+    const qDebts = query(collection(db, 'dividas'), where('uid', '==', user.uid), orderBy('timestamp', 'desc'));
     const unsubDebts = onSnapshot(qDebts, (snapshot) => {
       const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Debt));
       setDebts(data);
-    }, (error) => handleFirestoreError(error, OperationType.LIST, 'debts'));
+    }, (error) => handleFirestoreError(error, OperationType.LIST, 'dividas'));
 
-    const qProject = query(collection(db, 'financialProjects'), where('uid', '==', user.uid), orderBy('timestamp', 'desc'));
+    const qProject = query(collection(db, 'projetos_financeiros'), where('uid', '==', user.uid), orderBy('timestamp', 'desc'));
     const unsubProject = onSnapshot(qProject, (snapshot) => {
       if (!snapshot.empty) {
         setFinancialProject({ id: snapshot.docs[0].id, ...snapshot.docs[0].data() } as FinancialProject);
       }
-    }, (error) => handleFirestoreError(error, OperationType.LIST, 'financialProjects'));
+    }, (error) => handleFirestoreError(error, OperationType.LIST, 'projetos_financeiros'));
 
     return () => {
       unsubExpenses();
@@ -98,93 +98,93 @@ export const FinanceiroModule: React.FC<FinanceiroModuleProps> = ({
   const addIncome = React.useCallback(async (income: Omit<Income, 'id' | 'uid' | 'timestamp'>) => {
     if (!user) return;
     try {
-      await addDoc(collection(db, 'incomes'), {
+      await addDoc(collection(db, 'receitas'), {
         ...income,
         uid: user.uid,
         timestamp: serverTimestamp()
       });
     } catch (error) {
-      handleFirestoreError(error, OperationType.CREATE, 'incomes');
+      handleFirestoreError(error, OperationType.CREATE, 'receitas');
     }
   }, [user, handleFirestoreError]);
 
   const updateIncome = React.useCallback(async (id: string, income: Partial<Income>) => {
     try {
       const { id: _, ...data } = income as any;
-      await updateDoc(doc(db, 'incomes', id), data);
+      await updateDoc(doc(db, 'receitas', id), data);
       setEditingIncome(null);
     } catch (error) {
-      handleFirestoreError(error, OperationType.UPDATE, 'incomes');
+      handleFirestoreError(error, OperationType.UPDATE, 'receitas');
     }
   }, [handleFirestoreError]);
 
   const deleteIncome = React.useCallback(async (id: string) => {
     try {
-      await deleteDoc(doc(db, 'incomes', id));
+      await deleteDoc(doc(db, 'receitas', id));
     } catch (error) {
-      handleFirestoreError(error, OperationType.DELETE, 'incomes');
+      handleFirestoreError(error, OperationType.DELETE, 'receitas');
     }
   }, [handleFirestoreError]);
 
   const addExpense = React.useCallback(async (expense: Omit<Expense, 'id' | 'uid' | 'timestamp'>) => {
     if (!user) return;
     try {
-      await addDoc(collection(db, 'expenses'), {
+      await addDoc(collection(db, 'gastos'), {
         ...expense,
         uid: user.uid,
         timestamp: serverTimestamp()
       });
     } catch (error) {
-      handleFirestoreError(error, OperationType.CREATE, 'expenses');
+      handleFirestoreError(error, OperationType.CREATE, 'gastos');
     }
   }, [user, handleFirestoreError]);
 
   const updateExpense = React.useCallback(async (id: string, expense: Partial<Expense>) => {
     try {
       const { id: _, ...data } = expense as any;
-      await updateDoc(doc(db, 'expenses', id), data);
+      await updateDoc(doc(db, 'gastos', id), data);
       setEditingExpense(null);
     } catch (error) {
-      handleFirestoreError(error, OperationType.UPDATE, 'expenses');
+      handleFirestoreError(error, OperationType.UPDATE, 'gastos');
     }
   }, [handleFirestoreError]);
 
   const deleteExpense = React.useCallback(async (id: string) => {
     try {
-      await deleteDoc(doc(db, 'expenses', id));
+      await deleteDoc(doc(db, 'gastos', id));
     } catch (error) {
-      handleFirestoreError(error, OperationType.DELETE, 'expenses');
+      handleFirestoreError(error, OperationType.DELETE, 'gastos');
     }
   }, [handleFirestoreError]);
 
   const addDebt = React.useCallback(async (debt: Omit<Debt, 'id' | 'uid' | 'timestamp'>) => {
     if (!user) return;
     try {
-      await addDoc(collection(db, 'debts'), {
+      await addDoc(collection(db, 'dividas'), {
         ...debt,
         uid: user.uid,
         timestamp: serverTimestamp()
       });
     } catch (error) {
-      handleFirestoreError(error, OperationType.CREATE, 'debts');
+      handleFirestoreError(error, OperationType.CREATE, 'dividas');
     }
   }, [user, handleFirestoreError]);
 
   const updateDebt = React.useCallback(async (id: string, debt: Partial<Debt>) => {
     try {
       const { id: _, ...data } = debt as any;
-      await updateDoc(doc(db, 'debts', id), data);
+      await updateDoc(doc(db, 'dividas', id), data);
       setEditingDebt(null);
     } catch (error) {
-      handleFirestoreError(error, OperationType.UPDATE, 'debts');
+      handleFirestoreError(error, OperationType.UPDATE, 'dividas');
     }
   }, [handleFirestoreError]);
 
   const deleteDebt = React.useCallback(async (id: string) => {
     try {
-      await deleteDoc(doc(db, 'debts', id));
+      await deleteDoc(doc(db, 'dividas', id));
     } catch (error) {
-      handleFirestoreError(error, OperationType.DELETE, 'debts');
+      handleFirestoreError(error, OperationType.DELETE, 'dividas');
     }
   }, [handleFirestoreError]);
 
@@ -192,7 +192,19 @@ export const FinanceiroModule: React.FC<FinanceiroModuleProps> = ({
     if (!searchQuery?.trim()) return;
     setIsSearchingProduct(true);
     try {
-      const prompt = `Como um assistente de compras inteligente, pesquise o melhor preço online e uma opção local em Santos/SP para o produto: "${searchQuery}". Forneça links (se possível) e uma breve comparação de custo-benefício. Responda em Markdown em português.`;
+      let locationContext = "Santos/SP"; // Fallback
+      
+      try {
+        const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+          navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 5000 });
+        });
+        const { latitude, longitude } = position.coords;
+        locationContext = `latitude ${latitude}, longitude ${longitude}`;
+      } catch (geoError) {
+        console.warn("Geolocation failed, using fallback:", geoError);
+      }
+
+      const prompt = `Como um assistente de compras inteligente, pesquise o melhor preço online e uma opção local próxima a ${locationContext} para o produto: "${searchQuery}". Forneça links (se possível) e uma breve comparação de custo-benefício. Responda em Markdown em português.`;
       
       const response = await genAI.models.generateContent({
         model: "gemini-3-flash-preview",
@@ -229,7 +241,7 @@ export const FinanceiroModule: React.FC<FinanceiroModuleProps> = ({
       const text = (response.text || "").replace(/```json|```/g, '').trim();
       const projectData = JSON.parse(text);
       
-      await addDoc(collection(db, 'financialProjects'), {
+      await addDoc(collection(db, 'projetos_financeiros'), {
         ...projectData,
         uid: user.uid,
         timestamp: serverTimestamp()

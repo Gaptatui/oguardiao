@@ -42,7 +42,7 @@ export const WelcomeModal = ({ show, onClose, t }: WelcomeModalProps) => {
               { title: t.welcomeStep3Title, desc: t.welcomeStep3Desc },
               { title: t.welcomeStep4Title, desc: t.welcomeStep4Desc },
             ].map((step, i) => (
-              <div key={i} className="flex gap-3 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-800">
+              <div key={`welcome-step-${i}`} className="flex gap-3 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-800">
                 <div className="flex-1">
                   <h4 className="text-[10px] font-black text-slate-900 dark:text-slate-100 mb-0.5">{step.title}</h4>
                   <p className="text-[9px] text-slate-500 dark:text-slate-400 font-medium leading-tight">{step.desc}</p>

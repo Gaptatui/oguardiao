@@ -127,8 +127,8 @@ export const ScamView: React.FC<ScamViewProps> = ({
             <button onClick={() => setScamLogs([])} className="text-[10px] font-bold text-slate-400 dark:text-slate-500 hover:text-rose-600 dark:hover:text-rose-400 uppercase tracking-widest">{t.clear}</button>
           </div>
           <div className="space-y-4">
-            {scamLogs.map(log => (
-              <div key={log.id} className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-800 flex items-start gap-4">
+            {scamLogs.map((log, idx) => (
+              <div key={`scam-log-${log.id || `idx-${idx}-${log.timestamp}`}`} className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-800 flex items-start gap-4">
                 <div className={`p-2 rounded-xl shrink-0 ${log.action.includes('BLOQUEADO') ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400' : 'bg-slate-200 dark:bg-slate-700 text-slate-500 dark:text-slate-400'}`}>
                   <ShieldAlert className="w-4 h-4" />
                 </div>

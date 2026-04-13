@@ -133,7 +133,11 @@ export const LazerModule: React.FC<LazerModuleProps> = ({
     if (!leisureCache[cacheKey]) {
       fetchNearbyLeisure(leisureCategory, leisureSubCategory);
     } else {
-      setLeisureList(leisureCache[cacheKey]);
+      setLeisureList(prev => {
+        const cached = leisureCache[cacheKey];
+        // Only update if the reference is different to avoid unnecessary re-renders
+        return prev === cached ? prev : cached;
+      });
     }
   }, [leisureCategory, leisureSubCategory, leisureCache, fetchNearbyLeisure]);
 

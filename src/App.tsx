@@ -226,8 +226,12 @@ export default function App() {
   }, []);
 
   const handleFirestoreError = React.useCallback((error: unknown, operationType: OperationType, path: string | null) => {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    const isPermissionError = errorMessage.toLowerCase().includes('permission-denied') || 
+                             errorMessage.toLowerCase().includes('insufficient permissions');
+
     const errInfo: FirestoreErrorInfo = {
-      error: error instanceof Error ? error.message : String(error),
+      error: errorMessage,
       authInfo: {
         userId: auth.currentUser?.uid || 'unauthenticated',
         email: auth.currentUser?.email || 'none',
@@ -244,9 +248,15 @@ export default function App() {
       operationType,
       path
     }
+    
     console.error('Firestore Error: ', JSON.stringify(errInfo));
-    throw new Error(JSON.stringify(errInfo));
-  }, []);
+    
+    if (isPermissionError) {
+      throw new Error(JSON.stringify(errInfo));
+    } else {
+      showToast(`Erro no Firestore (${operationType} em ${path}): ${errorMessage}`, 'error');
+    }
+  }, [showToast]);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (u) => {
@@ -465,6 +475,14 @@ export default function App() {
         calculateSafeRoute: data.calculateSafeRoute
       };
       return prev.saveCarLocation === next.saveCarLocation && prev.calculateSafeRoute === next.calculateSafeRoute ? prev : next;
+    });
+  }, []);
+
+  const handleConfigDataChange = React.useCallback((data: any) => {
+    setConfiguracaoData(prev => {
+      const dataString = JSON.stringify({ personalData: data.personalData });
+      const prevString = JSON.stringify({ personalData: prev.personalData });
+      return dataString !== prevString ? data : prev;
     });
   }, []);
 
@@ -859,7 +877,7 @@ export default function App() {
             setTheme={setTheme}
             showToast={showToast}
             handleFirestoreError={handleFirestoreError}
-            onDataChange={(data) => setConfiguracaoData(data)}
+            onDataChange={handleConfigDataChange}
             showUI={view === 'SETTINGS'}
             isAdmin={isAdmin}
             setShowCheckout={setShowCheckout}
