@@ -96,7 +96,10 @@ export const FinanceiroModule: React.FC<FinanceiroModuleProps> = ({
 
   // Functions
   const addIncome = React.useCallback(async (income: Omit<Income, 'id' | 'uid' | 'timestamp'>) => {
-    if (!user) return;
+    if (!user) {
+      showToast("Faça login para salvar receitas.", "info");
+      return;
+    }
     try {
       await addDoc(collection(db, 'receitas'), {
         ...income,
@@ -106,7 +109,7 @@ export const FinanceiroModule: React.FC<FinanceiroModuleProps> = ({
     } catch (error) {
       handleFirestoreError(error, OperationType.CREATE, 'receitas');
     }
-  }, [user, handleFirestoreError]);
+  }, [user, handleFirestoreError, showToast]);
 
   const updateIncome = React.useCallback(async (id: string, income: Partial<Income>) => {
     try {
@@ -127,7 +130,10 @@ export const FinanceiroModule: React.FC<FinanceiroModuleProps> = ({
   }, [handleFirestoreError]);
 
   const addExpense = React.useCallback(async (expense: Omit<Expense, 'id' | 'uid' | 'timestamp'>) => {
-    if (!user) return;
+    if (!user) {
+      showToast("Faça login para salvar gastos.", "info");
+      return;
+    }
     try {
       await addDoc(collection(db, 'gastos'), {
         ...expense,
@@ -137,7 +143,7 @@ export const FinanceiroModule: React.FC<FinanceiroModuleProps> = ({
     } catch (error) {
       handleFirestoreError(error, OperationType.CREATE, 'gastos');
     }
-  }, [user, handleFirestoreError]);
+  }, [user, handleFirestoreError, showToast]);
 
   const updateExpense = React.useCallback(async (id: string, expense: Partial<Expense>) => {
     try {
@@ -158,7 +164,10 @@ export const FinanceiroModule: React.FC<FinanceiroModuleProps> = ({
   }, [handleFirestoreError]);
 
   const addDebt = React.useCallback(async (debt: Omit<Debt, 'id' | 'uid' | 'timestamp'>) => {
-    if (!user) return;
+    if (!user) {
+      showToast("Faça login para salvar dívidas.", "info");
+      return;
+    }
     try {
       await addDoc(collection(db, 'dividas'), {
         ...debt,
@@ -168,7 +177,7 @@ export const FinanceiroModule: React.FC<FinanceiroModuleProps> = ({
     } catch (error) {
       handleFirestoreError(error, OperationType.CREATE, 'dividas');
     }
-  }, [user, handleFirestoreError]);
+  }, [user, handleFirestoreError, showToast]);
 
   const updateDebt = React.useCallback(async (id: string, debt: Partial<Debt>) => {
     try {
@@ -219,7 +228,11 @@ export const FinanceiroModule: React.FC<FinanceiroModuleProps> = ({
   }, [searchQuery, genAI]);
 
   const generateFinancialProject = React.useCallback(async () => {
-    if (!user || expenses.length === 0) return;
+    if (!user) {
+      showToast("Faça login para gerar projetos.", "info");
+      return;
+    }
+    if (expenses.length === 0) return;
     setIsGeneratingProject(true);
     try {
       const prompt = `Com base nos seguintes dados financeiros:

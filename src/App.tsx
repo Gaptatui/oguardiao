@@ -284,7 +284,15 @@ export default function App() {
           }
         } else {
           setUser(null);
-          setUserProfile(null);
+          setUserProfile({
+            uid: 'guest',
+            email: '',
+            name: 'Convidado',
+            plan: 'free',
+            isAdmin: false,
+            isVip: false,
+            timestamp: Date.now()
+          });
         }
       } catch (error) {
         console.error("Auth error:", error);
@@ -486,6 +494,14 @@ export default function App() {
     });
   }, []);
 
+  useEffect(() => {
+    const handleTriggerLogin = () => {
+      handleLogin();
+    };
+    window.addEventListener('trigger-login', handleTriggerLogin);
+    return () => window.removeEventListener('trigger-login', handleTriggerLogin);
+  }, [handleLogin]);
+
   if (!isAuthReady) {
     return (
       <div className="min-h-screen bg-slate-950 flex items-center justify-center">
@@ -493,34 +509,6 @@ export default function App() {
           <div className="w-12 h-12 border-4 border-indigo-500/20 border-t-indigo-500 rounded-full animate-spin" />
           <p className="text-xs font-black text-indigo-500 uppercase tracking-[0.3em] animate-pulse">SENTINELA ATIVO</p>
         </div>
-      </div>
-    );
-  }
-
-  if (!user) {
-    return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4">
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="max-w-md w-full bg-slate-900 border border-slate-800 p-12 rounded-[40px] text-center shadow-2xl"
-        >
-          <div className="w-20 h-20 bg-indigo-600 rounded-3xl flex items-center justify-center mx-auto mb-8 shadow-xl shadow-indigo-500/20">
-            <ShieldCheck className="w-10 h-10 text-white" />
-          </div>
-          <h1 className="text-3xl font-black text-white mb-4 tracking-tighter uppercase">{t.appName}</h1>
-          <p className="text-slate-400 text-sm font-medium mb-10 leading-relaxed">
-            {t.welcomeSubtitle}
-          </p>
-          <button 
-            onClick={handleLogin}
-            className="w-full py-4 bg-white text-slate-950 rounded-2xl font-black text-sm uppercase tracking-widest flex items-center justify-center gap-3 hover:bg-slate-100 transition-all shadow-lg"
-          >
-            <LogIn className="w-5 h-5" />
-            {t.loginLabel}
-          </button>
-          <p className="mt-8 text-[10px] text-slate-500 font-bold uppercase tracking-widest">{t.footer}</p>
-        </motion.div>
       </div>
     );
   }

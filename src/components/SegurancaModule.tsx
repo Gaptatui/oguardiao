@@ -277,7 +277,11 @@ export const SegurancaModule: React.FC<SegurancaModuleProps> = ({
   }, [monitoredApps, actionType, t, showToast, setConfirmDialog]);
 
   const addSafeContact = React.useCallback(async () => {
-    if (newContactName && newContactPhone && user) {
+    if (!user) {
+      showToast("Faça login para salvar contatos.", "info");
+      return;
+    }
+    if (newContactName && newContactPhone) {
       try {
         await addDoc(collection(db, 'contatos_emergencia'), {
           uid: user.uid,

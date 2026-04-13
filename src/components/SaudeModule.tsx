@@ -233,7 +233,11 @@ export const SaudeModule: React.FC<SaudeModuleProps> = ({
   }, [user]);
 
   const addMedication = React.useCallback(async () => {
-    if (!user || !newMedication.nome || !newMedication.horario) {
+    if (!user) {
+      showToast("Faça login para salvar medicamentos.", "info");
+      return;
+    }
+    if (!newMedication.nome || !newMedication.horario) {
       showToast("Preencha o nome e o horário!", "error");
       return;
     }

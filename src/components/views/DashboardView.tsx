@@ -5,7 +5,7 @@ import {
   Navigation, MapPin, User, Users, Car, Bell, Search, ShieldCheck, 
   ExternalLink, Clock, Heart, Activity, Pill, QrCode, Zap, Trash2,
   Briefcase, Clapperboard, ShoppingBag, Theater, Beer, Utensils,
-  ShoppingBasket, Store, Plus, CheckCircle2, Star, ShieldQuestion, Mic, ShieldAlert
+  ShoppingBasket, Store, Plus, CheckCircle2, Star, ShieldQuestion, Mic, ShieldAlert, LogIn
 } from 'lucide-react';
 import { QRCodeCanvas } from 'qrcode.react';
 import { ProGuard } from '../Common';
@@ -104,6 +104,29 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       exit={{ opacity: 0, y: -10 }}
       className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start"
     >
+      {!user && (
+        <div className="lg:col-span-2 bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800 rounded-3xl p-6 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-sm">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 bg-indigo-100 dark:bg-indigo-800 rounded-full flex items-center justify-center shrink-0">
+              <ShieldCheck className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
+            </div>
+            <div>
+              <h3 className="text-lg font-black text-slate-900 dark:text-slate-100 uppercase tracking-tight">Modo Visitante</h3>
+              <p className="text-sm text-slate-600 dark:text-slate-400 font-medium">Você está testando as funções gratuitas. Faça login com o Google para salvar seus dados e acessar mais recursos.</p>
+            </div>
+          </div>
+          <button 
+            onClick={() => {
+              const event = new CustomEvent('trigger-login');
+              window.dispatchEvent(event);
+            }}
+            className="w-full sm:w-auto px-6 py-3 bg-indigo-600 text-white rounded-xl font-black text-sm uppercase tracking-widest hover:bg-indigo-700 transition-all shadow-md flex items-center justify-center gap-2 whitespace-nowrap"
+          >
+            <LogIn className="w-4 h-4" />
+            Fazer Login com Google
+          </button>
+        </div>
+      )}
       <div className="space-y-8">
         {/* Block 1: Security */}
         <section className="bg-white dark:bg-slate-900 rounded-3xl p-8 shadow-sm border border-slate-200 dark:border-slate-800 space-y-8">

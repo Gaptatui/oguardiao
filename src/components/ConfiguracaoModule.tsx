@@ -81,7 +81,10 @@ export const ConfiguracaoModule: React.FC<ConfiguracaoModuleProps> = ({
   };
 
   const saveSettings = async () => {
-    if (!user) return;
+    if (!user) {
+      showToast("Faça login para salvar configurações.", "info");
+      return;
+    }
     try {
       await setDoc(doc(db, 'configuracoes_usuario', user.uid), {
         language,
